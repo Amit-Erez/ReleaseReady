@@ -1,10 +1,11 @@
-import express from 'express';
+import express from "express";
+import { config } from "./config.js";
 
 const app = express();
-const port = process.env.PORT ?? 3000;
+const port = config.PORT;
 
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok' });
+app.get("/health", (_req, res) => { 
+  res.json({ status: "ok" });
 });
 
 app.listen(port, () => {

@@ -19,6 +19,8 @@ packages/
   shared/   Shared Zod schemas and types
 ```
 
+See [`docs/decisions.md`](docs/decisions.md) for the architecture decisions behind this structure.
+
 ## Getting started
 
 ```
