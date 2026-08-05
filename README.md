@@ -25,12 +25,25 @@ See [`docs/decisions.md`](docs/decisions.md) for the architecture decisions behi
 
 ```
 npm install
-npm run build -w apps/api   # compiles the backend
-npm run build -w apps/web   # builds the frontend
+npm run build -w apps/api      # compiles the backend
+npm run build -w apps/web      # builds the frontend
+npm run migrate:up -w apps/api # applies all database migrations
+npm run seed -w apps/api       # wipes and reseeds sample data (safe to rerun)
 ```
 
-Local dev scripts and database setup instructions will be added once those pieces are in place.
+Requires a local PostgreSQL database and a `DATABASE_URL` set in
+`apps/api/.env` (see `apps/api/.env` — gitignored, not committed).
 
 ## Status
 
-Currently in early scaffolding — database schema, API routes, and UI screens are not yet implemented.
+**Week 1 (Database and basic API), in progress:**
+- [x] Repository/project structure, local PostgreSQL set up
+- [x] Migrations for all 5 tables (`releases`, `tracks`, `contributors`,
+      `track_contributors`, `submissions`) with constraints — see
+      `apps/api/migrations/` and `docs/decisions.md`
+- [x] Seed script (`apps/api/scripts/seed.ts`)
+- [ ] `GET /api/releases`, `POST /api/releases`, release-detail endpoint
+      (next up — needs a Zod schema in `packages/shared` for request
+      validation first)
+
+UI screens (Week 3) not yet started.
