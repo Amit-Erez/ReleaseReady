@@ -36,14 +36,15 @@ Requires a local PostgreSQL database and a `DATABASE_URL` set in
 
 ## Status
 
-**Week 1 (Database and basic API), in progress:**
+**Week 1 (Database and basic API): done.**
 - [x] Repository/project structure, local PostgreSQL set up
 - [x] Migrations for all 5 tables (`releases`, `tracks`, `contributors`,
       `track_contributors`, `submissions`) with constraints — see
       `apps/api/migrations/` and `docs/decisions.md`
 - [x] Seed script (`apps/api/scripts/seed.ts`)
-- [ ] `GET /api/releases`, `POST /api/releases`, release-detail endpoint
-      (next up — needs a Zod schema in `packages/shared` for request
-      validation first)
+- [x] `GET /api/releases`, `GET /api/releases/:id`, `POST /api/releases`
+      — Zod-validated via `packages/shared`, manually tested in Postman
+
+**Week 2 (relationships, readiness, transactions, tests, CI): not started.**
 
 UI screens (Week 3) not yet started.
