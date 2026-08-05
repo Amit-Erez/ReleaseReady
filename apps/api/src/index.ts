@@ -1,10 +1,14 @@
 import express from "express";
 import { config } from "./config.js";
+import { releasesRouter } from "./routes/releases.js";
 
 const app = express();
-const port = config.PORT;
+app.use(express.json());
 
-app.get("/health", (_req, res) => { 
+const port = config.PORT;
+app.use("/api/releases", releasesRouter);
+
+app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 

@@ -1,0 +1,31 @@
+import { pool } from "../db.js";
+import type { CreateReleaseInput, Release } from "@release-ready/shared";
+
+export async function listReleases() {
+  const result = await pool.query<Release>(
+    "SELECT * FROM releases ORDER BY id",
+  );
+  return result.rows;
+}
+
+export async function getReleaseById(id: number) {
+  const result = await pool.query<Release>(
+    "SELECT * FROM releases WHERE id = $1",
+    [id],
+  );
+  if (result.rows.length === 0) return undefined;
+  return result.rows[0];
+}
+
+export async function createRelease({
+  artist_name,
+  title,
+  upc,
+  release_date,
+}: CreateReleaseInput) {
+  const result = await pool.query<Release>(
+    `INSERT INTO releases (title, artist_name, upc, release_date, status) VALUES ($1, $2, $3, $4, 'draft') RETURNING *`,
+    [title ?? null, artist_name, upc ?? null, release_date],
+  );
+  return result.rows[0];
+}
