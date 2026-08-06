@@ -142,3 +142,54 @@ with each other; the uniqueness only kicks in once a real value is set.
 most once, ever. There is no "resubmit" concept — a real-world
 cancellation is a brand new release with a new UPC, not a reset of the
 same row.
+
+## Contributor identity and reuse scope (Week 2)
+
+Adding a contributor to a track credit needs to resolve a typed name to a
+`contributor_id`. This raised a real design question: how does a user
+pick (or create) the right `contributors` row without either crediting a
+name-collision stranger by mistake, or duplicating the same real person
+every single time?
+
+Three approaches were considered and rejected before landing on the
+decision below:
+
+- **Global search across every contributor in the system.** Names are not
+  unique identifiers — the music industry addresses this for real with
+  dedicated identifiers (ISNI for individuals, IPI for songwriters)
+  specifically because two unrelated people can share a name. A search box
+  over the whole system risks silently crediting the wrong "Chris Smith."
+- **Always create a new contributor row, never offer reuse.** This looks
+  safe (no matching step, no wrong-click risk) but quietly defeats the
+  point of `contributors` being a separate table at all: if a row is never
+  reused, `default_role` (a "this person's usual role" convenience field)
+  never has anything to apply to, and every "contributor" is really just a
+  one-off set of extra columns on `track_contributors` in disguise.
+- **Artist-name-scoped reuse** (suggest contributors already credited on
+  any release sharing the same `artist_name`). Rejected because
+  `artist_name` is free text with no backing identity, same as contributor
+  names — and unlike band names, individual artist/stage names collide
+  often, for real, not just as typos. This doesn't reduce the ambiguity,
+  it relocates it one level up.
+
+**Decision: contributor reuse suggestions are scoped to the release
+currently being edited** — people already credited somewhere on *this*
+release (`track_contributors` joined through `tracks`, filtered by
+`release_id`), not the whole system and not by artist name. A `release_id`
+is a real primary key with zero string-matching ambiguity, so anything
+already linked to it is correct by construction — this is the tightest
+safe boundary available without adding real identity infrastructure. New
+people are still added via a normal "create contributor" action when
+they're not already in that list.
+
+Implementation implication: needs a read endpoint scoped by release (e.g.
+`GET /api/releases/:releaseId/contributors`) to power this list, in
+addition to the create endpoints already planned.
+
+**Known limitation, deliberately out of scope:** true reuse across an
+artist's *entire* catalogue (not just one release), and eliminating
+same-name collisions entirely, both require a dedicated identity concept
+this project doesn't have — a real `artists` table (its own primary key,
+`releases.artist_id` instead of, or alongside, free-text `artist_name`)
+would mirror ISNI/IPI for artists the same way an equivalent addition
+would for contributors. Both are legitimate Phase 2 ideas, not oversights.
