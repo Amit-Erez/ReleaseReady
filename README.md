@@ -45,6 +45,12 @@ Requires a local PostgreSQL database and a `DATABASE_URL` set in
 - [x] `GET /api/releases`, `GET /api/releases/:id`, `POST /api/releases`
       — Zod-validated via `packages/shared`, manually tested in Postman
 
-**Week 2 (relationships, readiness, transactions, tests, CI): not started.**
+**Week 2 (relationships, readiness, transactions, tests, CI): in progress.**
+- [x] `POST /api/releases/:releaseId/tracks`, `POST /api/contributors`,
+      `POST /api/tracks/:trackId/contributors` — Zod-validated via
+      `packages/shared`, manually tested in Postman (success + error paths,
+      incl. foreign-key and unique-constraint conflicts)
+- [ ] `GET` endpoints for release-scoped tracks/contributors
+- [ ] Readiness-check function, transactions, tests, CI
 
 UI screens (Week 3) not yet started.

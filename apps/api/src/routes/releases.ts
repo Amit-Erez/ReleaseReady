@@ -67,6 +67,12 @@ releasesRouter.post("/", async (req, res) => {
     const result = await createRelease(releaseInfo.data);
     res.status(201).json(result);
   } catch (err) {
+    if (err instanceof Error && (err as any).code === "23505") {
+      return res.status(409).json({
+        error: "duplicate_upc",
+        message: "That UPC is already in use",
+      });
+    }
     console.error(err);
     res.status(500).json({
       error: "internal_server_error",
