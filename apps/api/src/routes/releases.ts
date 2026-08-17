@@ -5,6 +5,7 @@ import {
   listReleases,
 } from "../services/releases.js";
 import { createReleaseSchema } from "@release-ready/shared";
+import { listContributorsByRelease } from "../services/contributors.js";
 
 export const releasesRouter = Router();
 
@@ -40,6 +41,33 @@ releasesRouter.get("/:id", async (req, res) => {
     } else {
       res.json(release);
     }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      error: "internal_server_error",
+      message: "Something went wrong",
+    });
+  }
+});
+
+releasesRouter.get("/:releaseId/contributors", async (req, res) => {
+  const id = Number(req.params.releaseId);
+  if (Number.isNaN(id)) {
+    res.status(400).json({
+      error: "invalid_releaseId",
+      message: "This isn't a valid release ID",
+    });
+    return;
+  }
+  try {
+    const release = await getReleaseById(id);
+    if (!release) {
+      return res
+        .status(404)
+        .json({ error: "release_not_found", message: "Release not found" });
+    }
+    const result = await listContributorsByRelease(id);
+    res.status(200).json(result);
   } catch (err) {
     console.error(err);
     res.status(500).json({

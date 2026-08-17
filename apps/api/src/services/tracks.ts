@@ -12,3 +12,10 @@ export async function createTrack(
   return result.rows[0];
 }
 
+export async function listTracksByRelease(releaseId: number) {
+  const result = await pool.query<Track>(
+    'SELECT * from tracks WHERE release_id = $1 ORDER by track_number', [releaseId]
+  );
+  return result.rows
+}
+

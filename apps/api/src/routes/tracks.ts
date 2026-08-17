@@ -1,8 +1,35 @@
 import { Router } from "express";
-import { createTrack } from "../services/tracks.js";
+import { createTrack, listTracksByRelease } from "../services/tracks.js";
 import { createTrackSchema } from "@release-ready/shared";
+import { getReleaseById } from "../services/releases.js";
 
 export const tracksRouter = Router({ mergeParams: true });
+
+tracksRouter.get<{ releaseId: string }>("/", async (req, res) => {
+  const releaseId = Number(req.params.releaseId);
+  if (Number.isNaN(releaseId)) {
+    return res.status(400).json({
+      error: "invalid_releaseId",
+      message: "This isn't a valid release ID",
+    });
+  }
+  try {
+    const release = await getReleaseById(releaseId);
+    if (!release) {
+      return res
+        .status(404)
+        .json({ error: "release_not_found", message: "Release not found" });
+    }
+    const result = await listTracksByRelease(releaseId);
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      error: "internal_server_error",
+      message: "Something went wrong",
+    });
+  }
+});
 
 tracksRouter.post<{ releaseId: string }>("/", async (req, res) => {
   const releaseId = Number(req.params.releaseId);
