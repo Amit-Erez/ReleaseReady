@@ -50,7 +50,10 @@ Requires a local PostgreSQL database and a `DATABASE_URL` set in
       `POST /api/tracks/:trackId/contributors` — Zod-validated via
       `packages/shared`, manually tested in Postman (success + error paths,
       incl. foreign-key and unique-constraint conflicts)
-- [ ] `GET` endpoints for release-scoped tracks/contributors
+- [x] `GET /api/releases/:releaseId/tracks`, `GET /api/releases/:releaseId/contributors`
+      — the latter joins across `track_contributors`/`tracks` to power the
+      future contributor-reuse picker; both 404 on a nonexistent release,
+      manually tested in Postman
 - [ ] Readiness-check function, transactions, tests, CI
 
 UI screens (Week 3) not yet started.
