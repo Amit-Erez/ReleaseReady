@@ -62,6 +62,12 @@ tracksRouter.post<{ releaseId: string }>("/", async (req, res) => {
         message: "Release not found",
       });
     } else if (err instanceof Error && (err as any).code === "23505") {
+      if ((err as any).constraint === "tracks_uniq_release_id_track_number") {
+        return res.status(409).json({
+          error: "duplicate_track_number",
+          message: "A track with that track number already exists on this release",
+        });
+      }
       return res.status(409).json({
         error: "duplicate_isrc",
         message: "That ISRC is already in use",
