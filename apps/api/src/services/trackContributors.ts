@@ -14,3 +14,10 @@ export async function createTrackContributor(
   );
   return result.rows[0];
 }
+
+export async function listTrackContributorsByTrack(trackId: number) {
+const result = await pool.query<TrackContributor>(
+'SELECT * FROM track_contributors tc WHERE tc.track_id = $1', [trackId]
+);
+return result.rows
+}

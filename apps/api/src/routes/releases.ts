@@ -6,6 +6,7 @@ import {
 } from "../services/releases.js";
 import { createReleaseSchema } from "@release-ready/shared";
 import { listContributorsByRelease } from "../services/contributors.js";
+import { getReleaseReadiness } from "../services/readiness.js";
 
 export const releasesRouter = Router();
 
@@ -101,6 +102,32 @@ releasesRouter.post("/", async (req, res) => {
         message: "That UPC is already in use",
       });
     }
+    console.error(err);
+    res.status(500).json({
+      error: "internal_server_error",
+      message: "Something went wrong",
+    });
+  }
+});
+
+releasesRouter.get("/:releaseId/readiness", async (req, res) => {
+  const id = Number(req.params.releaseId);
+  if (Number.isNaN(id)) {
+    res.status(400).json({
+      error: "invalid_releaseId",
+      message: "This isn't a valid release ID",
+    });
+    return;
+  }
+  try {
+    const failures = await getReleaseReadiness(id);
+    if (failures === undefined) {
+      return res
+        .status(404)
+        .json({ error: "release_not_found", message: "Release not found" });
+    }
+    res.status(200).json(failures);
+  } catch (err) {
     console.error(err);
     res.status(500).json({
       error: "internal_server_error",

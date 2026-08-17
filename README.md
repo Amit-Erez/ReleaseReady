@@ -54,6 +54,9 @@ Requires a local PostgreSQL database and a `DATABASE_URL` set in
       — the latter joins across `track_contributors`/`tracks` to power the
       future contributor-reuse picker; both 404 on a nonexistent release,
       manually tested in Postman
-- [ ] Readiness-check function, transactions, tests, CI
+- [x] Readiness-check function (`checkReadiness`, pure/unit-testable) and
+      `GET /api/releases/:releaseId/readiness`, covering all 6 readiness
+      rules — manually tested in Postman
+- [ ] Transactions, tests, CI
 
 UI screens (Week 3) not yet started.
