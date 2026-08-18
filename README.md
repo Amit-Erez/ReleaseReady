@@ -57,6 +57,15 @@ Requires a local PostgreSQL database and a `DATABASE_URL` set in
 - [x] Readiness-check function (`checkReadiness`, pure/unit-testable) and
       `GET /api/releases/:releaseId/readiness`, covering all 6 readiness
       rules — manually tested in Postman
-- [ ] Transactions, tests, CI
+- [x] `PATCH /api/releases/:id` — edits release metadata (all-or-nothing);
+      409 on duplicate UPC, 409 if the release is already submitted
+      (checked before the write, so a submitted release can never be
+      silently modified); manually tested in Postman
+- [ ] `PATCH /api/tracks/:id`
+- [ ] `PUT /api/tracks/:id/contributors` (the transactional
+      contributor-split-replace endpoint)
+- [ ] Submit-flow transaction
+- [ ] Tests
+- [ ] CI
 
 UI screens (Week 3) not yet started.
