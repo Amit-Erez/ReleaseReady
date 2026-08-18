@@ -16,3 +16,6 @@ export const createTrackContributorSchema = z.object({
 });
 
 export type CreateTrackContributorInput = z.infer<typeof createTrackContributorSchema>;
+
+export const replaceTrackContributorsSchema = z.array(createTrackContributorSchema);
+export type ReplaceTrackContributorsInput = z.infer<typeof replaceTrackContributorsSchema>;

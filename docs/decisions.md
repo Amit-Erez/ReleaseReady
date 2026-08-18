@@ -193,3 +193,46 @@ this project doesn't have — a real `artists` table (its own primary key,
 `releases.artist_id` instead of, or alongside, free-text `artist_name`)
 would mirror ISNI/IPI for artists the same way an equivalent addition
 would for contributors. Both are legitimate Phase 2 ideas, not oversights.
+
+## Process note: a scope drift, caught and corrected (Week 2)
+
+Worth documenting honestly, since it's a real example of catching and
+fixing a mistake rather than one to hide.
+
+Early in Week 2, `POST /api/tracks/:trackId/contributors` was built as an
+endpoint to add one contributor credit to a track at a time. This wasn't
+in the original project brief — it was based on an AI assistant's
+condensed *summary* of that brief from an earlier session, not the
+primary source document itself. That summary, while confident and
+detailed-looking, had silently dropped real specifics: the brief's actual
+8-endpoint design has no incremental single-credit endpoint at all. It
+specifies exactly one way to manage a track's contributor set:
+`PUT /api/tracks/:id/contributors`, which atomically *replaces* the whole
+set in one transaction and enforces that the splits sum to exactly 100%
+before committing — matching the real frontend workflow (a live split
+editor where you balance a track's whole roster in one sitting, then
+save).
+
+The mismatch surfaced while starting work on the submit-flow transaction:
+a scope question ("did we forget track editing, and the transactional
+split endpoint the brief mentions?") didn't match what the AI's own
+condensed memory claimed the scope was. Rather than trust that memory
+either way, the original brief document was located and read directly,
+which confirmed the gap — and also caught two other missing endpoints
+(`PATCH /api/releases/:id`, `PATCH /api/tracks/:id`) the same summary had
+dropped.
+
+**The fix:** build the correct `PUT /api/tracks/:id/contributors` per the
+actual spec, and retire `POST /api/tracks/:trackId/contributors` once it
+exists — so there's exactly one way to change a track's contributors, and
+it's the one that actually enforces the 100% rule. Keeping both would
+have left a real hole: the strict endpoint's whole purpose is defeated if
+a looser one can write the same data without checking it.
+
+**The lesson:** an AI assistant's own summary of something is a claim to
+verify, not ground truth — especially anything structurally precise (an
+exact API surface, a numbered list of rules). A summary can look complete
+and still have quietly lost detail in the condensing. The fix here wasn't
+"trust the AI less" so much as "when scope is in question, go back to the
+primary source" — the same instinct that would apply to trusting a
+teammate's paraphrase of a spec over the spec itself.
