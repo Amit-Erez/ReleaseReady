@@ -61,7 +61,9 @@ Requires a local PostgreSQL database and a `DATABASE_URL` set in
       409 on duplicate UPC, 409 if the release is already submitted
       (checked before the write, so a submitted release can never be
       silently modified); manually tested in Postman
-- [ ] `PATCH /api/tracks/:id`
+- [x] `PATCH /api/tracks/:id` — edits track metadata (all-or-nothing);
+      409 on duplicate ISRC or track number, 409 if the track's parent
+      release is already submitted; manually tested in Postman
 - [ ] `PUT /api/tracks/:id/contributors` (the transactional
       contributor-split-replace endpoint)
 - [ ] Submit-flow transaction
