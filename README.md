@@ -46,10 +46,10 @@ Requires a local PostgreSQL database and a `DATABASE_URL` set in
       — Zod-validated via `packages/shared`, manually tested in Postman
 
 **Week 2 (relationships, readiness, transactions, tests, CI): in progress.**
-- [x] `POST /api/releases/:releaseId/tracks`, `POST /api/contributors`,
-      `POST /api/tracks/:trackId/contributors` — Zod-validated via
-      `packages/shared`, manually tested in Postman (success + error paths,
-      incl. foreign-key and unique-constraint conflicts)
+- [x] `POST /api/releases/:releaseId/tracks`, `POST /api/contributors`
+      — Zod-validated via `packages/shared`, manually tested in Postman
+      (success + error paths, incl. foreign-key and unique-constraint
+      conflicts)
 - [x] `GET /api/releases/:releaseId/tracks`, `GET /api/releases/:releaseId/contributors`
       — the latter joins across `track_contributors`/`tracks` to power the
       future contributor-reuse picker; both 404 on a nonexistent release,
@@ -64,8 +64,14 @@ Requires a local PostgreSQL database and a `DATABASE_URL` set in
 - [x] `PATCH /api/tracks/:id` — edits track metadata (all-or-nothing);
       409 on duplicate ISRC or track number, 409 if the track's parent
       release is already submitted; manually tested in Postman
-- [ ] `PUT /api/tracks/:id/contributors` (the transactional
-      contributor-split-replace endpoint)
+- [x] `PUT /api/tracks/:id/contributors` — the second (and last) project
+      transaction: atomically replaces a track's whole contributor set,
+      422 if the new splits don't sum to exactly 100%, 409 on a submitted
+      release or a duplicate contributor+role pair in the same request.
+      Replaces the earlier `POST /api/tracks/:trackId/contributors`
+      (removed — see `docs/decisions.md` "Process note" for why it
+      existed and why it was retired). Manually tested in Postman across
+      all paths.
 - [ ] Submit-flow transaction
 - [ ] Tests
 - [ ] CI
