@@ -78,7 +78,14 @@ Requires a local PostgreSQL database and a `DATABASE_URL` set in
       rolling back if either write fails. 404 if not found, 422 with the
       failure list if not ready, 409 if already submitted. Manually
       tested in Postman across all paths.
-- [ ] Tests
+- [x] Tests — 11 total: readiness unit tests (one per rule + one all-clear
+      case, `services/readiness.test.ts`) and three submit-flow
+      integration tests (`tests/submit.test.ts`, Supertest against a
+      separate test database) covering a successful submission, a failed
+      readiness check, and the rollback test forcing a mid-transaction
+      failure and asserting zero partial state. Run via
+      `npm run test -w apps/api`; see `docs/rollback-test-explained.md`
+      for how the rollback test's mocking works.
 - [ ] CI
 
 UI screens (Week 3) not yet started.
