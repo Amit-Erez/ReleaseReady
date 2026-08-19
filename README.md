@@ -72,7 +72,12 @@ Requires a local PostgreSQL database and a `DATABASE_URL` set in
       (removed — see `docs/decisions.md` "Process note" for why it
       existed and why it was retired). Manually tested in Postman across
       all paths.
-- [ ] Submit-flow transaction
+- [x] `POST /api/releases/:id/submit` — the submit-flow transaction (the
+      project's primary transaction): rechecks readiness, then atomically
+      inserts the `submissions` row and flips `status` to `submitted`,
+      rolling back if either write fails. 404 if not found, 422 with the
+      failure list if not ready, 409 if already submitted. Manually
+      tested in Postman across all paths.
 - [ ] Tests
 - [ ] CI
 
