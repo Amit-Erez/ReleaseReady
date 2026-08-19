@@ -1,5 +1,7 @@
 # ReleaseReady
 
+[![CI](https://github.com/Amit-Erez/ReleaseReady/actions/workflows/ci.yml/badge.svg)](https://github.com/Amit-Erez/ReleaseReady/actions/workflows/ci.yml)
+
 A small full-stack tool for tracking music release readiness — catalogue releases and tracks, manage contributor credits and splits, and run a readiness check before submission. Built as a portfolio project rooted in real digital-distribution QA experience.
 
 ## Stack
@@ -45,7 +47,7 @@ Requires a local PostgreSQL database and a `DATABASE_URL` set in
 - [x] `GET /api/releases`, `GET /api/releases/:id`, `POST /api/releases`
       — Zod-validated via `packages/shared`, manually tested in Postman
 
-**Week 2 (relationships, readiness, transactions, tests, CI): in progress.**
+**Week 2 (relationships, readiness, transactions, tests, CI): done.**
 - [x] `POST /api/releases/:releaseId/tracks`, `POST /api/contributors`
       — Zod-validated via `packages/shared`, manually tested in Postman
       (success + error paths, incl. foreign-key and unique-constraint
@@ -86,6 +88,9 @@ Requires a local PostgreSQL database and a `DATABASE_URL` set in
       failure and asserting zero partial state. Run via
       `npm run test -w apps/api`; see `docs/rollback-test-explained.md`
       for how the rollback test's mocking works.
-- [ ] CI
+- [x] CI — GitHub Actions (`.github/workflows/ci.yml`): installs
+      dependencies, starts a temporary PostgreSQL service container, runs
+      migrations, then runs the test suite, on every push and pull
+      request to `main`. Badge at the top of this README.
 
 UI screens (Week 3) not yet started.
