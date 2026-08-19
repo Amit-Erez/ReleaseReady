@@ -8,6 +8,7 @@ import {
 import { createReleaseSchema } from "@release-ready/shared";
 import { listContributorsByRelease } from "../services/contributors.js";
 import { getReleaseReadiness } from "../services/readiness.js";
+import { submitRelease } from "../services/submissions.js";
 
 export const releasesRouter = Router();
 
@@ -181,6 +182,47 @@ releasesRouter.get("/:releaseId/readiness", async (req, res) => {
     }
     res.status(200).json(failures);
   } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      error: "internal_server_error",
+      message: "Something went wrong",
+    });
+  }
+});
+
+releasesRouter.post("/:id/submit", async (req, res) => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    res.status(400).json({
+      error: "invalid_releaseId",
+      message: "This isn't a valid release ID",
+    });
+    return;
+  }
+
+  try {
+    const failures = await getReleaseReadiness(id);
+    if (failures === undefined) {
+      return res
+        .status(404)
+        .json({ error: "release_not_found", message: "Release not found" });
+    }
+    if (failures.length > 0) {
+      return res.status(422).json({
+        error: "not_ready",
+        message: "This release isn't ready to submit",
+        details: failures,
+      });
+    }
+    const submission = await submitRelease(id);
+    return res.status(201).json(submission);
+  } catch (err) {
+    if (err instanceof Error && (err as any).code === "23505") {
+      return res.status(409).json({
+        error: "release_already_submitted",
+        message: "A release cannot be submitted more than once",
+      });
+    }
     console.error(err);
     res.status(500).json({
       error: "internal_server_error",
