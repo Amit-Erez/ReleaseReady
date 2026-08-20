@@ -236,3 +236,68 @@ and still have quietly lost detail in the condensing. The fix here wasn't
 "trust the AI less" so much as "when scope is in question, go back to the
 primary source" — the same instinct that would apply to trusting a
 teammate's paraphrase of a spec over the spec itself.
+
+## Process note: a readiness check with only one real trigger (Week 3)
+
+`splits_not_100` is one of the 6 checks in `checkReadiness()`, but it
+cannot currently be reached through any real path in the app. The only
+way to write to `track_contributors` is `PUT /tracks/:id/contributors`,
+which itself rejects (422, atomic — nothing persists on failure) any
+split set that doesn't sum to exactly 100%, for any caller of that
+endpoint. The sole way this state exists in the database today is
+`scripts/seed.ts`, which writes directly to Postgres and bypasses that
+validation entirely.
+
+The check stays anyway. `checkReadiness()` is deliberately a pure
+function over whatever's currently in the database, independent of how
+it got there — that's a design choice (a correctness check shouldn't be
+coupled to trusting any one write path), not evidence the check is dead
+code. Hiding it from the frontend's readiness panel because "the current
+UI can't produce this state" would make the UI misrepresent what the
+real function actually validates, and the gap it protects against is
+concrete, not hypothetical: `scripts/seed.ts` already exists in this
+codebase today, and any future direct-database tooling (a migration, an
+admin script, a bulk-fix) would have the same gap.
+
+## Track ordering vs. ISRC uniqueness — same symptom, different cause, different fix (Week 3, forward design)
+
+Both `tracks.isrc` and `(release_id, track_number)` are unique
+constraints that can raise a 409 on save, but they need opposite UX
+treatment, because they're unique at different scopes for different
+reasons:
+
+**`track_number` is unique per release** (`unique: [['release_id',
+'track_number']]`) and carries no meaning beyond ordering within that
+one release. A conflict here almost always means the user is doing
+something completely legitimate — reordering two tracks — and the naive
+constraint just gets in the way of it (rename Track 2 to "1" while
+Track 1 still holds "1", and the save fails, even though swapping their
+order is exactly what should be allowed).
+
+**Decision:** stop treating track number as a raw field the user types a
+specific integer into. Treat it as *position* instead — moving a track
+shifts every other track between its old and new spot by one, computed
+and written in a single transaction, the same mental model as any
+real-world playlist/tracklist reorder. This means:
+- The per-track editor (`TrackEditorPage`) does not expose an editable
+  track-number field at all — the track's number is shown as read-only
+  text ("Track N") near the title.
+- Reordering happens from the Release Detail page's Tracks card instead
+  (drag or up/down controls, not yet built — this pass only removed the
+  editable field from the per-track page in anticipation of it).
+- The backend implication: a future `reorderTrack(trackId, newPosition)`
+  service function, not a raw `PATCH` of `track_number` — bounded,
+  transactional logic consistent with what's already in this project
+  (the contributor-replace transaction, the submit transaction), not
+  over-engineering for this app's scale.
+
+**`isrc` is unique globally** (`isrc: { type: 'text', unique: true }`,
+no `release_id` scoping) because it identifies one specific real-world
+recording — two different tracks legitimately sharing one is essentially
+never correct. A conflict here is almost always a typo or a genuine
+duplicate-entry mistake, not a normal editing action being blocked, and
+there's no sensible "shift" or "swap" operation for an identifier that
+isn't positional. **Decision:** no special handling needed beyond a
+clear validation error, ideally naming which existing track already
+holds that code, so the user can tell "I mistyped it" from "I'm about to
+log a genuine duplicate" apart.

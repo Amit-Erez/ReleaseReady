@@ -93,4 +93,34 @@ Requires a local PostgreSQL database and a `DATABASE_URL` set in
       migrations, then runs the test suite, on every push and pull
       request to `main`. Badge at the top of this README.
 
-UI screens (Week 3) not yet started.
+**Week 3 (frontend, static UI pass): done.**
+- [x] Tailwind v4 CSS-first theming (`apps/web/src/index.css`) — light
+      ("warm & analog") and dark ("studio console") themes via a
+      `data-theme` attribute, a full custom type scale, and semantic
+      `good`/`critical` colors kept separate from the accent color
+- [x] `AppShell`/`TopBar`/`ThemeToggle` — stable-label toggle button
+      driven by `aria-pressed` (not swapped text), skip-to-main-content
+      link, native `<dialog>` centering and cursor fixes for gaps in
+      Tailwind's preflight reset
+- [x] Landing page (`/`) — logo wordmark linking to `/dashboard`
+- [x] Releases list (`/dashboard`) — filterable table, real
+      keyboard-focusable links (not clickable rows), `CreateReleaseDialog`
+- [x] Release detail (`/releases/:releaseId`) — track list with a
+      per-track split-status column, `ReadinessPanel` covering all 6 real
+      `checkReadiness()` codes with accessible pass/fail rows,
+      `AddTrackDialog`, submit bar
+- [x] Track & contributor editor
+      (`/releases/:releaseId/tracks/:trackId`) — track metadata,
+      `ContributorSplitEditor` with a running total, disabled Save until
+      splits reach 100%; track number is intentionally read-only here
+      (see `docs/decisions.md` — reordering will live on the Release
+      Detail page's Tracks card instead, to avoid the unique-constraint
+      trap of typing a number another track already holds)
+- [x] Fixture data (`apps/web/src/lib/placeholderData.ts`) typed against
+      the real `@release-ready/shared` schemas, hand-typed (not computed)
+      to match what real `checkReadiness()` output would look like
+
+Everything above is static markup — no `fetch`, no TanStack Query, no
+form validation, no real computation (splits/readiness are hand-typed
+fixture values, deliberately not derived via `.reduce()`). Wiring this
+UI up to the real API is the next pass.
