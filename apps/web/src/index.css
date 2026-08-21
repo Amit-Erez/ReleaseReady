@@ -15,12 +15,16 @@
   --color-pill-bg: var(--pill-bg);
   --color-pill-text: var(--pill-text);
   --color-accent-contrast: var(--accent-contrast);
+  --color-skeleton: var(--skeleton);
+  --color-skeleton-shine: var(--skeleton-shine);
 
   --font-sans: Calibri, "Segoe UI", sans-serif;
   --font-mono: "SF Mono", "Cascadia Code", Consolas, monospace;
 
   --radius-lg: var(--radius-card);
   --radius-sm: var(--radius-chip);
+
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
 
   /* Type scale, ~1.12x Tailwind's defaults */
   --text-xs: 0.8125rem;
@@ -55,6 +59,8 @@
   --pill-bg: #e9e1cf;
   --pill-text: #4b4130;
   --accent-contrast: #ffffff;
+  --skeleton: #e1d9c9;
+  --skeleton-shine: rgba(255, 255, 255, 0.55);
   --radius-card: 10px;
   --radius-chip: 6px;
 }
@@ -72,8 +78,19 @@
   --pill-bg: #2a2419;
   --pill-text: #e8a33d;
   --accent-contrast: #16181c;
+  --skeleton: #2b2f36;
+  --skeleton-shine: rgba(255, 255, 255, 0.06);
   --radius-card: 4px;
   --radius-chip: 3px;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 @layer base {

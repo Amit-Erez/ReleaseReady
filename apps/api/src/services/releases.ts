@@ -1,11 +1,17 @@
 import { pool } from "../db.js";
-import type { CreateReleaseInput, Release } from "@release-ready/shared";
+import type { CreateReleaseInput, Release, ReleaseWithReadiness } from "@release-ready/shared";
+import { getReadinessSummaryForRelease } from "./readiness.js";
 
-export async function listReleases() {
+export async function listReleases(): Promise<ReleaseWithReadiness[]> {
   const result = await pool.query<Release>(
     "SELECT * FROM releases ORDER BY id",
   );
-  return result.rows;
+  return Promise.all(
+    result.rows.map(async (release) => ({
+      ...release,
+      readinessSummary: await getReadinessSummaryForRelease(release),
+    })),
+  );
 }
 
 export async function getReleaseById(id: number) {

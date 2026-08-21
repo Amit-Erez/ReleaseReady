@@ -5,7 +5,10 @@ import { ReleaseDetailPage } from "./routes/ReleaseDetailPage";
 import { TrackEditorPage } from "./routes/TrackEditorPage";
 import { AppShell } from "./components/layout/AppShell";
 
+
 function App() {
+
+
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />

@@ -21,3 +21,14 @@ export const releaseSchema = z.object({
 });
 
 export type Release = z.infer<typeof releaseSchema>;
+
+export const releaseWithReadinessSchema = releaseSchema.extend({
+  readinessSummary: z
+    .object({
+      checksPassed: z.number(),
+      checksTotal: z.number(),
+    })
+    .nullable(),
+});
+
+export type ReleaseWithReadiness = z.infer<typeof releaseWithReadinessSchema>;
