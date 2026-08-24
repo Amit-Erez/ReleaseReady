@@ -9,6 +9,8 @@ import { formatReleaseDate } from "../lib/format";
 import { useQuery } from "@tanstack/react-query";
 import { fetchReleaseById, fetchTracksByRelease } from "../lib/api";
 import { ReleaseDetailSkeleton } from "../components/skeletons/ReleaseDetailSkeleton";
+import { ErrorState } from "../components/errors/ErrorState";
+import { CompactErrorState } from "../components/errors/CompactErrorState";
 
 export function ReleaseDetailPage() {
   const { releaseId } = useParams<{ releaseId: string }>();
@@ -17,6 +19,9 @@ export function ReleaseDetailPage() {
   const {
     data: release,
     isLoading,
+    isError,
+    error,
+    refetch,
   } = useQuery({
     queryKey: ["release", releaseId],
     queryFn: () => fetchReleaseById(releaseId),
@@ -24,10 +29,31 @@ export function ReleaseDetailPage() {
 
   const {
     data: tracks,
+    isError: isTracksError,
+    error: tracksError,
+    refetch: refetchTracks,
   } = useQuery({
     queryKey: ["tracks", releaseId],
     queryFn: () => fetchTracksByRelease(releaseId),
   })
+
+  if (isError) {
+    return (
+      <>
+        <Link
+          to="/dashboard"
+          className="mb-5.5 inline-flex items-center gap-1.5 text-sm font-semibold text-text-soft hover:text-accent focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        >
+          ← Releases
+        </Link>
+        <ErrorState
+          title="Couldn't load this release"
+          message={error instanceof Error ? error.message : "Unknown error"}
+          onRetry={() => refetch()}
+        />
+      </>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -117,59 +143,67 @@ export function ReleaseDetailPage() {
             )}
           </div>
           <Card className="flex h-71.5 flex-col">
-            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th
-                      scope="col"
-                      className="sticky top-0 bg-bg px-5 py-3 text-left text-[0.72rem]/[normal] font-bold uppercase tracking-wide text-text-soft"
-                    >
-                      #
-                    </th>
-                    <th
-                      scope="col"
-                      className="sticky top-0 bg-bg px-5 py-3 text-left text-[0.72rem]/[normal] font-bold uppercase tracking-wide text-text-soft"
-                    >
-                      Title
-                    </th>
-                    <th
-                      scope="col"
-                      className="sticky top-0 bg-bg px-5 py-3 text-left text-[0.72rem]/[normal] font-bold uppercase tracking-wide text-text-soft"
-                    >
-                      ISRC
-                    </th>
-                    <th
-                      scope="col"
-                      className="sticky top-0 bg-bg px-5 py-3 text-left text-[0.72rem]/[normal] font-bold uppercase tracking-wide text-text-soft"
-                    >
-                      Splits
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tracks?.map((track) => (
-                    <tr key={track.id} className="border-b border-border">
-                      <td className="px-5 py-3.5 text-sm text-text-soft">{track.track_number}</td>
-                      <td className="px-5 py-3.5 text-sm font-bold text-text">
-                        <Link
-                          to={`/releases/${release.id}/tracks/${track.id}`}
-                          className="hover:text-accent hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                        >
-                          {track.title}
-                        </Link>
-                      </td>
-                      <td className="px-5 py-3.5 font-mono text-[0.85rem]/[normal] text-text-soft">
-                        {track.isrc ?? <span className="font-sans italic text-critical">Missing</span>}
-                      </td>
-                      <td className={`px-5 py-3.5 text-sm font-semibold ${track.splitsTotal === 100 ? "text-good" : "text-critical"}`}>
-                        {track.splitsTotal === 0 ? "No contributors" : `${track.splitsTotal}%`}
-                      </td>
+            {isTracksError ? (
+              <CompactErrorState
+                title="Couldn't load tracks"
+                message={tracksError instanceof Error ? tracksError.message : "Unknown error"}
+                onRetry={() => refetchTracks()}
+              />
+            ) : (
+              <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th
+                        scope="col"
+                        className="sticky top-0 bg-bg px-5 py-3 text-left text-[0.72rem]/[normal] font-bold uppercase tracking-wide text-text-soft"
+                      >
+                        #
+                      </th>
+                      <th
+                        scope="col"
+                        className="sticky top-0 bg-bg px-5 py-3 text-left text-[0.72rem]/[normal] font-bold uppercase tracking-wide text-text-soft"
+                      >
+                        Title
+                      </th>
+                      <th
+                        scope="col"
+                        className="sticky top-0 bg-bg px-5 py-3 text-left text-[0.72rem]/[normal] font-bold uppercase tracking-wide text-text-soft"
+                      >
+                        ISRC
+                      </th>
+                      <th
+                        scope="col"
+                        className="sticky top-0 bg-bg px-5 py-3 text-left text-[0.72rem]/[normal] font-bold uppercase tracking-wide text-text-soft"
+                      >
+                        Splits
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {tracks?.map((track) => (
+                      <tr key={track.id} className="border-b border-border">
+                        <td className="px-5 py-3.5 text-sm text-text-soft">{track.track_number}</td>
+                        <td className="px-5 py-3.5 text-sm font-bold text-text">
+                          <Link
+                            to={`/releases/${release.id}/tracks/${track.id}`}
+                            className="hover:text-accent hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                          >
+                            {track.title}
+                          </Link>
+                        </td>
+                        <td className="px-5 py-3.5 font-mono text-[0.85rem]/[normal] text-text-soft">
+                          {track.isrc ?? <span className="font-sans italic text-critical">Missing</span>}
+                        </td>
+                        <td className={`px-5 py-3.5 text-sm font-semibold ${track.splitsTotal === 100 ? "text-good" : "text-critical"}`}>
+                          {track.splitsTotal === 0 ? "No contributors" : `${track.splitsTotal}%`}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </Card>
         </section>
 
