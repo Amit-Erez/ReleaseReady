@@ -17,6 +17,15 @@ export type ReadinessFailure = {
 
 /** Total number of distinct readiness rules (see checkReadiness's `code`s below). */
 export const READINESS_CHECK_COUNT = 6;
+export const RULES = [
+  {code: "missing_title", message: "Title is required"},
+  {code: "missing_upc", message: "UPC is required"},
+  {code: "missing_tracks", message: "A release must have at least one track"},
+  {code: "missing_isrc", message: "Every track must have an isrc code"},
+  {code: "no_contributors_listed", message: "Every track must list at least 1 contributor"},
+  {code: "splits_not_100", message: "Every track's contributor splits must total exactly 100 percent"},
+]
+export const submittedReleaseRulesPanel = RULES.map((rule) => ({...rule, passed: true}))
 
 async function buildReadinessInput(release: Release): Promise<ReadinessInput> {
   const tracks = await listTracksByRelease(release.id);
@@ -49,18 +58,30 @@ export async function getReleaseReadiness(releaseId: number) {
  */
 export function summarizeReadiness(failures: ReadinessFailure[]) {
   const failingCodes = new Set(failures.map((f) => f.code));
+  const ruleChecks = [];
+  for (const rule of RULES) {
+    if(failingCodes.has(rule.code)){
+      ruleChecks.push({code: rule.code, message: rule.message, passed: false})
+    } else {
+      ruleChecks.push({code: rule.code, message: rule.message, passed: true})
+    }
+  }
   return {
     checksPassed: READINESS_CHECK_COUNT - failingCodes.size,
     checksTotal: READINESS_CHECK_COUNT,
+    ruleChecks: ruleChecks,
   };
 }
 
 /**
- * Submitted releases don't get a summary at all (matches the approved UI:
- * an em-dash, not a stale "6/6") — also skips the extra queries entirely.
+ * Submitted releases get a static all-passing summary, skipping the queries.
  */
 export async function getReadinessSummaryForRelease(release: Release) {
-  if (release.status === "submitted") return null;
+  if (release.status === "submitted") return {
+    checksPassed: READINESS_CHECK_COUNT,
+    checksTotal: READINESS_CHECK_COUNT,
+    ruleChecks: submittedReleaseRulesPanel,
+  };
   const input = await buildReadinessInput(release);
   const failures = checkReadiness(input);
   return summarizeReadiness(failures);

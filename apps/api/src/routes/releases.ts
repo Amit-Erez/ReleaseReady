@@ -7,7 +7,7 @@ import {
 } from "../services/releases.js";
 import { createReleaseSchema } from "@release-ready/shared";
 import { listContributorsByRelease } from "../services/contributors.js";
-import { getReleaseReadiness } from "../services/readiness.js";
+import { getReadinessSummaryForRelease, getReleaseReadiness } from "../services/readiness.js";
 import { submitRelease } from "../services/submissions.js";
 
 export const releasesRouter = Router();
@@ -42,7 +42,8 @@ releasesRouter.get("/:id", async (req, res) => {
         message: "Release not found",
       });
     } else {
-      res.json(release);
+      const summary = await getReadinessSummaryForRelease(release)
+      res.json({...release, readinessSummary: summary});
     }
   } catch (err) {
     console.error(err);

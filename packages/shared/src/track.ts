@@ -13,6 +13,12 @@ export const trackSchema = z.object({
 
 export type Track = z.infer<typeof trackSchema>;
 
+export const trackWithSplitsSchema = trackSchema.extend({
+splitsTotal: z.number()
+})
+
+export type TrackWithSplits = z.infer<typeof trackWithSplitsSchema>
+
 export const createTrackSchema = z.object({
   title: z.string().min(1),
   track_number: z.number().int().positive(),

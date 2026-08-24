@@ -23,11 +23,11 @@ const FILTERS: { value: StatusFilter; label: string }[] = [
 ];
 
 function ReadinessCell({
-  summary,
+  summary, status
 }: {
-  summary: ReleaseWithReadiness["readinessSummary"];
+  summary: ReleaseWithReadiness["readinessSummary"], status: "draft" | "submitted"
 }) {
-  if (!summary) {
+  if (status === "submitted") {
     return <span className="text-[0.88rem]/[normal] text-text-soft">—</span>;
   }
   if (summary.checksPassed === summary.checksTotal) {
@@ -61,10 +61,6 @@ export function ReleasesListPage() {
     queryKey: ["releases"],
     queryFn: () => fetchReleases(),
   });
-
-  useEffect(() => {
-    console.log(result);
-  }, []);
 
   const visibleReleases =
     statusFilter === "all"
@@ -189,7 +185,7 @@ export function ReleasesListPage() {
                       </Pill>
                     </td>
                     <td className="px-5 py-3.5">
-                      <ReadinessCell summary={release.readinessSummary} />
+                      <ReadinessCell summary={release.readinessSummary} status={release.status} />
                     </td>
                   </tr>
                 ))}

@@ -1,5 +1,6 @@
 import { pool } from "../db.js";
-import type { CreateTrackInput, Track } from "@release-ready/shared";
+import type { CreateTrackInput, Track, TrackWithSplits } from "@release-ready/shared";
+import { listTrackContributorsByTrack } from "./trackContributors.js";
 
 export async function createTrack(
   releaseId: number,
@@ -42,4 +43,15 @@ export async function getTrackById(id: number) {
   );
   if (result.rows.length === 0) return undefined;
   return result.rows[0];
+}
+
+export async function getTracksWithSplits(releaseId: number): Promise<TrackWithSplits[]> {
+  const tracks = await listTracksByRelease(releaseId);
+  return Promise.all(
+    tracks.map(async (track) => {
+      const contributors = await listTrackContributorsByTrack(track.id);
+      const splitsTotal = contributors.reduce((sum, c) => sum + c.split_percent, 0);
+      return { ...track, splitsTotal };
+    }),
+  );
 }

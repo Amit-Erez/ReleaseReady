@@ -20,7 +20,8 @@ export async function getReleaseById(id: number) {
     [id],
   );
   if (result.rows.length === 0) return undefined;
-  return result.rows[0];
+  const release = result.rows[0];
+  return release
 }
 
 export async function createRelease({

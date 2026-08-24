@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   createTrack,
   getTrackById,
-  listTracksByRelease,
+  getTracksWithSplits,
   updateTrack,
 } from "../services/tracks.js";
 import { createTrackSchema } from "@release-ready/shared";
@@ -26,8 +26,8 @@ tracksRouter.get<{ releaseId: string }>("/", async (req, res) => {
         .status(404)
         .json({ error: "release_not_found", message: "Release not found" });
     }
-    const result = await listTracksByRelease(releaseId);
-    res.status(200).json(result);
+    const tracks = await getTracksWithSplits(releaseId);
+    res.status(200).json(tracks);
   } catch (err) {
     console.error(err);
     res.status(500).json({
@@ -58,16 +58,24 @@ tracksRouter.post<{ releaseId: string }>("/", async (req, res) => {
     });
   }
 
+  const release = await getReleaseById(releaseId);
+  if (!release) {
+    return res.status(404).json({
+      error: "release_not_found",
+      message: "Release not found",
+    });
+  } else if (release.status === "submitted") {
+    return res.status(409).json({
+      error: "release_already_submitted",
+      message: "Tracks on a submitted release can't be edited",
+    });
+  }
+
   try {
     const result = await createTrack(releaseId, trackInfo.data);
     res.status(201).json(result);
   } catch (err) {
-    if (err instanceof Error && (err as any).code === "23503") {
-      return res.status(404).json({
-        error: "release_not_found",
-        message: "Release not found",
-      });
-    } else if (err instanceof Error && (err as any).code === "23505") {
+    if (err instanceof Error && (err as any).code === "23505") {
       if ((err as any).constraint === "tracks_uniq_release_id_track_number") {
         return res.status(409).json({
           error: "duplicate_track_number",

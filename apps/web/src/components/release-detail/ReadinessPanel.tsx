@@ -1,7 +1,7 @@
-import type { ReadinessCheck } from "../../lib/placeholderData";
+import type { ReleaseWithReadiness } from "@release-ready/shared";
 
 type ReadinessPanelProps = {
-  checks: ReadinessCheck[];
+  checks: ReleaseWithReadiness["readinessSummary"]["ruleChecks"];
 };
 
 export function ReadinessPanel({ checks }: ReadinessPanelProps) {
