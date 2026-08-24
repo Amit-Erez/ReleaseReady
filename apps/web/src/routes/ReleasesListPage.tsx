@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
@@ -53,7 +53,6 @@ export function ReleasesListPage() {
   const {
     data: result,
     isLoading,
-    isFetching,
     isError,
     error,
     refetch,

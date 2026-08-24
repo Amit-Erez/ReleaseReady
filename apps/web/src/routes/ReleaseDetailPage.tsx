@@ -4,26 +4,19 @@ import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Pill } from "../components/ui/Pill";
 import { ReadinessPanel } from "../components/release-detail/ReadinessPanel";
-import {
-  AddTrackDialog,
-  type AddTrackDialogHandle,
-} from "../components/release-detail/AddTrackDialog";
+import { type AddTrackDialogHandle } from "../components/release-detail/AddTrackDialog";
 import { formatReleaseDate } from "../lib/format";
 import { useQuery } from "@tanstack/react-query";
 import { fetchReleaseById, fetchTracksByRelease } from "../lib/api";
+import { ReleaseDetailSkeleton } from "../components/skeletons/ReleaseDetailSkeleton";
 
 export function ReleaseDetailPage() {
   const { releaseId } = useParams<{ releaseId: string }>();
-  // const release = placeholderReleases.find((r) => r.id === Number(releaseId));
   const addTrackDialogRef = useRef<AddTrackDialogHandle>(null);
 
   const {
     data: release,
     isLoading,
-    isFetching,
-    isError,
-    error,
-    refetch,
   } = useQuery({
     queryKey: ["release", releaseId],
     queryFn: () => fetchReleaseById(releaseId),
@@ -35,6 +28,20 @@ export function ReleaseDetailPage() {
     queryKey: ["tracks", releaseId],
     queryFn: () => fetchTracksByRelease(releaseId),
   })
+
+  if (isLoading) {
+    return (
+      <>
+        <Link
+          to="/dashboard"
+          className="mb-5.5 inline-flex items-center gap-1.5 text-sm font-semibold text-text-soft hover:text-accent focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        >
+          ← Releases
+        </Link>
+        <ReleaseDetailSkeleton />
+      </>
+    );
+  }
 
   if (!release) {
     return (
