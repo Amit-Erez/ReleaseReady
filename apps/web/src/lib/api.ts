@@ -1,4 +1,5 @@
 import type {
+  CreateReleaseInput,
   CreateTrackInput,
   Release,
   ReleaseWithReadiness,
@@ -48,16 +49,35 @@ export async function fetchTracksByRelease(
   return data;
 }
 
-export async function createNewTrack(id: string, data: CreateTrackInput): Promise<Track> {
- const res = await fetch(`${API_URL}/api/releases/${id}/tracks`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json",},
-  body: JSON.stringify(data),
- });
- if (!res.ok) {
+export async function createNewTrack(
+  id: string,
+  data: CreateTrackInput,
+): Promise<Track> {
+  const res = await fetch(`${API_URL}/api/releases/${id}/tracks`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
     const errorData = await res.json();
     throw new Error(errorData.message);
   }
   const track = await res.json();
   return track;
+}
+
+export async function createNewRelease(
+  data: CreateReleaseInput,
+): Promise<Release> {
+  const res = await fetch(`${API_URL}/api/releases`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message);
+  }
+  const release = await res.json();
+  return release;
 }

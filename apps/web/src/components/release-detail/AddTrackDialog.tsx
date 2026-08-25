@@ -103,7 +103,10 @@ export function AddTrackDialog({
           label="ISRC"
           placeholder="Optional for now"
           hasError={!!errors.isrc}
-          hint={errors.isrc?.message ??"Contributors and splits are added after the track is created."}
+          hint={
+            errors.isrc?.message ??
+            "Contributors and splits are added after the track is created."
+          }
           {...register("isrc")}
         />
       </form>
@@ -112,7 +115,10 @@ export function AddTrackDialog({
         <Button
           variant="secondary"
           type="button"
-          onClick={() => {dialogRef.current?.close(); reset();}}
+          onClick={() => {
+            dialogRef.current?.close();
+            reset();
+          }}
         >
           Cancel
         </Button>
