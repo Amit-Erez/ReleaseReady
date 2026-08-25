@@ -93,7 +93,10 @@ Requires a local PostgreSQL database and a `DATABASE_URL` set in
       migrations, then runs the test suite, on every push and pull
       request to `main`. Badge at the top of this README.
 
-**Week 3 (frontend, static UI pass): done.**
+**Week 3 (small frontend — connect React to the real API): in progress.**
+Built in two deliberate passes: static UI first (placeholder data, no
+`fetch`), then wired to the real API screen by screen. Both passes are
+part of this same week's deliverable, not separate milestones.
 - [x] Tailwind v4 CSS-first theming (`apps/web/src/index.css`) — light
       ("warm & analog") and dark ("studio console") themes via a
       `data-theme` attribute, a full custom type scale, and semantic
@@ -103,24 +106,32 @@ Requires a local PostgreSQL database and a `DATABASE_URL` set in
       link, native `<dialog>` centering and cursor fixes for gaps in
       Tailwind's preflight reset
 - [x] Landing page (`/`) — logo wordmark linking to `/dashboard`
-- [x] Releases list (`/dashboard`) — filterable table, real
-      keyboard-focusable links (not clickable rows), `CreateReleaseDialog`
-- [x] Release detail (`/releases/:releaseId`) — track list with a
-      per-track split-status column, `ReadinessPanel` covering all 6 real
-      `checkReadiness()` codes with accessible pass/fail rows,
-      `AddTrackDialog`, submit bar
-- [x] Track & contributor editor
-      (`/releases/:releaseId/tracks/:trackId`) — track metadata,
-      `ContributorSplitEditor` with a running total, disabled Save until
-      splits reach 100%; track number is intentionally read-only here
-      (see `docs/decisions.md` — reordering will live on the Release
-      Detail page's Tracks card instead, to avoid the unique-constraint
-      trap of typing a number another track already holds)
-- [x] Fixture data (`apps/web/src/lib/placeholderData.ts`) typed against
-      the real `@release-ready/shared` schemas, hand-typed (not computed)
-      to match what real `checkReadiness()` output would look like
+- [x] Releases list (`/dashboard`) — real `useQuery` fetch, filterable
+      table, real keyboard-focusable links (not clickable rows),
+      `CreateReleaseDialog`, loading skeleton, and an accessible error
+      state with retry. Readiness indicator is now computed
+      server-side (`GET /api/releases`), closing a gap between the
+      brief's spec and what Week 1 actually built.
+- [x] Release detail (`/releases/:releaseId`) — real fetch for the
+      release and its tracks (each with a computed `splitsTotal`), a
+      full readiness breakdown (all 6 rules, pass/fail, not just
+      failures) via `ReadinessPanel`, a loading skeleton, and two error
+      states (full-page if the release fails to load, a smaller
+      in-card one if only the tracks fetch fails). `AddTrackDialog` is
+      fully wired — React Hook Form + a Zod resolver, a real mutation
+      that creates the track and refreshes the list on success.
+- [ ] Track & contributor editor
+      (`/releases/:releaseId/tracks/:trackId`) — UI built
+      (`ContributorSplitEditor` with a running total, track number
+      intentionally read-only — see `docs/decisions.md`), but still on
+      placeholder data; not yet wired to the real API.
+- [ ] "Submit release" action — button exists on the release detail
+      page, but has no mutation wired up yet.
+- [ ] Track reordering (drag/up-down on the release detail page's
+      Tracks card) — planned but not built; track number is
+      intentionally read-only everywhere else specifically so this is
+      the one place a track's position changes (see `docs/decisions.md`).
 
-Everything above is static markup — no `fetch`, no TanStack Query, no
-form validation, no real computation (splits/readiness are hand-typed
-fixture values, deliberately not derived via `.reduce()`). Wiring this
-UI up to the real API is the next pass.
+Fixture data for what's still unwired lives in
+`apps/web/src/lib/placeholderData.ts`, typed against the real
+`@release-ready/shared` schemas.
