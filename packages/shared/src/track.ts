@@ -33,3 +33,9 @@ export const createTrackSchema = z.object({
 });
 
 export type CreateTrackInput = z.infer<typeof createTrackSchema>;
+
+export const moveTrackSchema = z.object({
+  direction: z.enum(["up", "down"]),
+});
+
+export type MoveTrackInput = z.infer<typeof moveTrackSchema>;

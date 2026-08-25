@@ -45,6 +45,33 @@ export async function getTrackById(id: number) {
   return result.rows[0];
 }
 
+export async function moveTrack(trackId: number, newPosition: number) {
+  const track = await getTrackById(trackId);
+  if (!track) return undefined;
+
+  const oldPosition = track.track_number;
+  if (newPosition === oldPosition) return [track];
+
+  const movingUp = newPosition < oldPosition;
+  const shiftAmount = movingUp ? 1 : -1;
+  const rangeStart = movingUp ? newPosition : oldPosition + 1;
+  const rangeEnd = movingUp ? oldPosition - 1 : newPosition;
+
+  const result = await pool.query<Track>(
+    `UPDATE tracks
+     SET track_number = CASE
+       WHEN id = $1 THEN $2
+       ELSE track_number + $3
+     END
+     WHERE release_id = $4
+       AND (id = $1 OR (track_number >= $5 AND track_number <= $6))
+     RETURNING *`,
+    [trackId, newPosition, shiftAmount, track.release_id, rangeStart, rangeEnd],
+  );
+
+  return result.rows;
+}
+
 export async function getTracksWithSplits(releaseId: number): Promise<TrackWithSplits[]> {
   const tracks = await listTracksByRelease(releaseId);
   return Promise.all(

@@ -9,8 +9,8 @@ import {
   type AddTrackDialogHandle,
 } from "../components/release-detail/AddTrackDialog";
 import { formatReleaseDate } from "../lib/format";
-import { useQuery } from "@tanstack/react-query";
-import { fetchReleaseById, fetchTracksByRelease } from "../lib/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchReleaseById, fetchTracksByRelease, moveTrack } from "../lib/api";
 import { ReleaseDetailSkeleton } from "../components/skeletons/ReleaseDetailSkeleton";
 import { ErrorState } from "../components/errors/ErrorState";
 import { CompactErrorState } from "../components/errors/CompactErrorState";
@@ -38,6 +38,20 @@ export function ReleaseDetailPage() {
   } = useQuery({
     queryKey: ["tracks", releaseId],
     queryFn: () => fetchTracksByRelease(releaseId),
+  });
+
+  const queryClient = useQueryClient();
+  const moveTrackMutation = useMutation({
+    mutationFn: ({
+      trackId,
+      direction,
+    }: {
+      trackId: number;
+      direction: "up" | "down";
+    }) => moveTrack(trackId, direction),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tracks", releaseId] });
+    },
   });
 
   if (isError) {
@@ -189,10 +203,47 @@ export function ReleaseDetailPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {tracks?.map((track) => (
+                    {tracks?.map((track, index) => (
                       <tr key={track.id} className="border-b border-border">
                         <td className="px-5 py-3.5 text-sm text-text-soft">
-                          {track.track_number}
+                          <div className="flex items-center gap-1.5">
+                            <span>{track.track_number}</span>
+                            {release.status !== "submitted" && (
+                              <span className="flex flex-col">
+                                <button
+                                  type="button"
+                                  aria-label={`Move ${track.title} up`}
+                                  disabled={index === 0 || moveTrackMutation.isPending}
+                                  onClick={() =>
+                                    moveTrackMutation.mutate({
+                                      trackId: track.id,
+                                      direction: "up",
+                                    })
+                                  }
+                                  className="leading-none text-text-soft hover:text-accent disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:text-text-soft focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                                >
+                                  ▲
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-label={`Move ${track.title} down`}
+                                  disabled={
+                                    index === tracks.length - 1 ||
+                                    moveTrackMutation.isPending
+                                  }
+                                  onClick={() =>
+                                    moveTrackMutation.mutate({
+                                      trackId: track.id,
+                                      direction: "down",
+                                    })
+                                  }
+                                  className="leading-none text-text-soft hover:text-accent disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:text-text-soft focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                                >
+                                  ▼
+                                </button>
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-5 py-3.5 text-sm font-bold text-text">
                           <Link

@@ -29,13 +29,17 @@ async function main() {
   );
 
   const neonSkylineId = releases.rows[0].id;
+  const midnightEchoId = releases.rows[1].id;
 
   const tracks = await client.query<{ id: number }>(
     `INSERT INTO tracks (release_id, title, track_number, isrc) VALUES
       ($1, 'Neon Skyline', 1, 'USRC12345601'),
-      ($1, 'City Lights', 2, 'USRC12345602')
+      ($1, 'City Lights', 2, 'USRC12345602'),
+      ($2, 'Low Tide', 1, NULL),
+      ($2, 'Static Bloom', 2, NULL),
+      ($2, 'Afterglow', 3, NULL)
     RETURNING id`,
-    [neonSkylineId]
+    [neonSkylineId, midnightEchoId]
   );
 
   const neonSkylineTrackId = tracks.rows[0].id;
@@ -58,7 +62,7 @@ async function main() {
     [neonSkylineId]
   );
 
-  console.log('Seed complete: 4 contributors, 4 releases, 2 tracks, 4 credits, 1 submission.');
+  console.log('Seed complete: 4 contributors, 4 releases, 5 tracks, 4 credits, 1 submission.');
 
   await client.end();
 }

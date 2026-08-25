@@ -1,6 +1,7 @@
 import type {
   CreateReleaseInput,
   CreateTrackInput,
+  MoveTrackInput,
   Release,
   ReleaseWithReadiness,
   Track,
@@ -64,6 +65,22 @@ export async function createNewTrack(
   }
   const track = await res.json();
   return track;
+}
+
+export async function moveTrack(
+  trackId: number,
+  direction: MoveTrackInput["direction"],
+): Promise<Track[]> {
+  const res = await fetch(`${API_URL}/api/tracks/${trackId}/move`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ direction }),
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message);
+  }
+  return res.json();
 }
 
 export async function createNewRelease(
