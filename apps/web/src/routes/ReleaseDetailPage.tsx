@@ -4,7 +4,10 @@ import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Pill } from "../components/ui/Pill";
 import { ReadinessPanel } from "../components/release-detail/ReadinessPanel";
-import { type AddTrackDialogHandle } from "../components/release-detail/AddTrackDialog";
+import {
+  AddTrackDialog,
+  type AddTrackDialogHandle,
+} from "../components/release-detail/AddTrackDialog";
 import { formatReleaseDate } from "../lib/format";
 import { useQuery } from "@tanstack/react-query";
 import { fetchReleaseById, fetchTracksByRelease } from "../lib/api";
@@ -35,7 +38,7 @@ export function ReleaseDetailPage() {
   } = useQuery({
     queryKey: ["tracks", releaseId],
     queryFn: () => fetchTracksByRelease(releaseId),
-  })
+  });
 
   if (isError) {
     return (
@@ -135,6 +138,7 @@ export function ReleaseDetailPage() {
             {release.status !== "submitted" && (
               <button
                 type="button"
+                disabled={!tracks}
                 onClick={() => addTrackDialogRef.current?.open()}
                 className="rounded-sm border border-border px-3 py-1.25 text-[0.8rem]/[normal] font-semibold text-text hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               >
@@ -146,7 +150,11 @@ export function ReleaseDetailPage() {
             {isTracksError ? (
               <CompactErrorState
                 title="Couldn't load tracks"
-                message={tracksError instanceof Error ? tracksError.message : "Unknown error"}
+                message={
+                  tracksError instanceof Error
+                    ? tracksError.message
+                    : "Unknown error"
+                }
                 onRetry={() => refetchTracks()}
               />
             ) : (
@@ -183,7 +191,9 @@ export function ReleaseDetailPage() {
                   <tbody>
                     {tracks?.map((track) => (
                       <tr key={track.id} className="border-b border-border">
-                        <td className="px-5 py-3.5 text-sm text-text-soft">{track.track_number}</td>
+                        <td className="px-5 py-3.5 text-sm text-text-soft">
+                          {track.track_number}
+                        </td>
                         <td className="px-5 py-3.5 text-sm font-bold text-text">
                           <Link
                             to={`/releases/${release.id}/tracks/${track.id}`}
@@ -193,10 +203,18 @@ export function ReleaseDetailPage() {
                           </Link>
                         </td>
                         <td className="px-5 py-3.5 font-mono text-[0.85rem]/[normal] text-text-soft">
-                          {track.isrc ?? <span className="font-sans italic text-critical">Missing</span>}
+                          {track.isrc ?? (
+                            <span className="font-sans italic text-critical">
+                              Missing
+                            </span>
+                          )}
                         </td>
-                        <td className={`px-5 py-3.5 text-sm font-semibold ${track.splitsTotal === 100 ? "text-good" : "text-critical"}`}>
-                          {track.splitsTotal === 0 ? "No contributors" : `${track.splitsTotal}%`}
+                        <td
+                          className={`px-5 py-3.5 text-sm font-semibold ${track.splitsTotal === 100 ? "text-good" : "text-critical"}`}
+                        >
+                          {track.splitsTotal === 0
+                            ? "No contributors"
+                            : `${track.splitsTotal}%`}
                         </td>
                       </tr>
                     ))}
@@ -245,11 +263,13 @@ export function ReleaseDetailPage() {
           </Button>
         )}
       </Card>
-
-      {/* <AddTrackDialog
-        ref={addTrackDialogRef}
-        nextTrackNumber={tracks.length + 1}
-      /> */}
+      {tracks && releaseId && (
+        <AddTrackDialog
+          ref={addTrackDialogRef}
+          nextTrackNumber={tracks.length + 1}
+          releaseId={releaseId}
+        />
+      )}
     </>
   );
 }
