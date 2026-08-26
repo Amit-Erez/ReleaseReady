@@ -127,10 +127,17 @@ part of this same week's deliverable, not separate milestones.
       placeholder data; not yet wired to the real API.
 - [ ] "Submit release" action — button exists on the release detail
       page, but has no mutation wired up yet.
-- [ ] Track reordering (drag/up-down on the release detail page's
-      Tracks card) — planned but not built; track number is
-      intentionally read-only everywhere else specifically so this is
-      the one place a track's position changes (see `docs/decisions.md`).
+- [x] Track reordering — `PATCH /api/tracks/:id/move` swaps a track
+      with its neighbor via a single atomic `UPDATE`; required making
+      the `(release_id, track_number)` unique constraint deferrable,
+      since Postgres checks it per-row rather than once per statement.
+      Up/down buttons on the release detail page's Tracks card are
+      keyboard-accessible by default (native `<button>`s), disabled at
+      the list's edges and while the release is submitted. Track number
+      is intentionally read-only everywhere else specifically so this
+      is the one place it changes (see `docs/decisions.md`). Mouse
+      drag-and-drop is deferred to a later pass; the same endpoint will
+      support it without backend changes.
 
 Fixture data for what's still unwired lives in
 `apps/web/src/lib/placeholderData.ts`, typed against the real
