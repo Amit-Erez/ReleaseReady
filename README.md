@@ -104,7 +104,9 @@ part of this same week's deliverable, not separate milestones.
 - [x] `AppShell`/`TopBar`/`ThemeToggle` — stable-label toggle button
       driven by `aria-pressed` (not swapped text), skip-to-main-content
       link, native `<dialog>` centering and cursor fixes for gaps in
-      Tailwind's preflight reset
+      Tailwind's preflight reset. Real logo assets (icon + wordmark,
+      text swapped via the `dark:` variant) replaced the placeholder
+      text wordmark in the top bar and landing page.
 - [x] Landing page (`/`) — logo wordmark linking to `/dashboard`
 - [x] Releases list (`/dashboard`) — real `useQuery` fetch, filterable
       table, real keyboard-focusable links (not clickable rows),
@@ -121,10 +123,18 @@ part of this same week's deliverable, not separate milestones.
       fully wired — React Hook Form + a Zod resolver, a real mutation
       that creates the track and refreshes the list on success.
 - [ ] Track & contributor editor
-      (`/releases/:releaseId/tracks/:trackId`) — UI built
-      (`ContributorSplitEditor` with a running total, track number
-      intentionally read-only — see `docs/decisions.md`), but still on
-      placeholder data; not yet wired to the real API.
+      (`/releases/:releaseId/tracks/:trackId`) — real data wiring
+      done: fetches the release, its tracks, and a new
+      `GET /api/tracks/:id/contributors` endpoint (joins
+      `track_contributors` to `contributors` for names, mirroring the
+      existing `PUT` sibling), plus a matching loading skeleton
+      (`TrackEditorSkeleton`) and two error states (full-page if the
+      release or tracks fail to load, in-card if only the credits fetch
+      fails). Not yet an actual editor: the title/ISRC fields and
+      contributor rows are still display-only (`defaultValue`, no
+      `onChange`), and "+ Add contributor"/"×" remove aren't wired to
+      any state or mutation yet. Track number stays intentionally
+      read-only here — see `docs/decisions.md`.
 - [ ] "Submit release" action — button exists on the release detail
       page, but has no mutation wired up yet.
 - [x] Track reordering — `PATCH /api/tracks/:id/move` swaps a track
