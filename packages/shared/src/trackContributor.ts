@@ -9,6 +9,15 @@ export const trackContributorSchema = z.object({
 
 export type TrackContributor = z.infer<typeof trackContributorSchema>;
 
+export const trackCreditSchema = z.object({
+  contributor_id: z.number(),
+  name: z.string(),
+  role: z.enum(["composer", "producer", "arranger", "lyricist"]),
+  split_percent: z.number().gt(0).lte(100),
+});
+
+export type TrackCredit = z.infer<typeof trackCreditSchema>
+
 export const createTrackContributorSchema = z.object({
   contributor_id: z.number(),
   role: z.enum(["composer", "producer", "arranger", "lyricist"]),

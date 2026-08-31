@@ -2,11 +2,20 @@ import { pool } from "../db.js";
 import type {
   ReplaceTrackContributorsInput,
   TrackContributor,
+  TrackCredit,
 } from "@release-ready/shared";
 
 export async function listTrackContributorsByTrack(trackId: number) {
   const result = await pool.query<TrackContributor>(
     "SELECT * FROM track_contributors tc WHERE tc.track_id = $1",
+    [trackId],
+  );
+  return result.rows;
+}
+
+export async function listCreditsByTrack(trackId: number) {
+  const result = await pool.query<TrackCredit>(
+    "SELECT c.id AS contributor_id, c.name, tc.role, tc.split_percent FROM track_contributors tc INNER JOIN contributors c ON tc.contributor_id = c.id WHERE tc.track_id = $1",
     [trackId],
   );
   return result.rows;
@@ -37,7 +46,7 @@ export async function replaceTrackContributors(
     }
 
     await client.query("COMMIT");
-    return newCredits
+    return newCredits;
   } catch (err) {
     await client.query("ROLLBACK");
     throw err;

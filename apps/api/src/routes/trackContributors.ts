@@ -1,10 +1,46 @@
 import { replaceTrackContributorsSchema } from "@release-ready/shared";
 import { Router } from "express";
-import { replaceTrackContributors } from "../services/trackContributors.js";
+import {
+  listCreditsByTrack,
+  replaceTrackContributors,
+} from "../services/trackContributors.js";
 import { getTrackById } from "../services/tracks.js";
 import { getReleaseById } from "../services/releases.js";
 
 export const trackContributorsRouter = Router({ mergeParams: true });
+
+trackContributorsRouter.get<{ trackId: string }>("/", async (req, res) => {
+  const trackId = Number(req.params.trackId);
+  if (Number.isNaN(trackId)) {
+    return res.status(400).json({
+      error: "invalid_trackId",
+      message: "This isn't a valid track ID",
+    });
+  }
+  try {
+    const track = await getTrackById(trackId);
+    if (!track) {
+      return res
+        .status(404)
+        .json({ error: "track_not_found", message: "Track not found" });
+    }
+    const release = await getReleaseById(track.release_id);
+    if (!release) {
+      return res.status(404).json({
+        error: "release_not_found",
+        message: "Release not found",
+      });
+    }
+    const result = await listCreditsByTrack(trackId);
+    return res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      error: "internal_server_error",
+      message: "Something went wrong",
+    });
+  }
+});
 
 trackContributorsRouter.put<{ trackId: string }>("/", async (req, res) => {
   const trackId = Number(req.params.trackId);

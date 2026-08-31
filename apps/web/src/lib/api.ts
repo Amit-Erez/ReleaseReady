@@ -5,6 +5,7 @@ import type {
   Release,
   ReleaseWithReadiness,
   Track,
+  TrackCredit,
   TrackWithSplits,
 } from "@release-ready/shared";
 
@@ -42,6 +43,16 @@ export async function fetchTracksByRelease(
   id?: string,
 ): Promise<TrackWithSplits[]> {
   const res = await fetch(`${API_URL}/api/releases/${id}/tracks`);
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message);
+  }
+  const data = await res.json();
+  return data;
+}
+
+export async function fetchCreditsByTrackId(id?: string): Promise<TrackCredit[]> {
+  const res = await fetch(`${API_URL}/api/tracks/${id}/contributors`);
   if (!res.ok) {
     const errorData = await res.json();
     throw new Error(errorData.message);
