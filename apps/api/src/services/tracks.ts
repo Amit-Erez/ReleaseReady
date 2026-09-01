@@ -1,5 +1,5 @@
 import { pool } from "../db.js";
-import type { CreateTrackInput, Track, TrackWithSplits } from "@release-ready/shared";
+import type { CreateTrackInput, Track, TrackWithSplits, UpdateTrackInput } from "@release-ready/shared";
 import { listTrackContributorsByTrack } from "./trackContributors.js";
 
 export async function createTrack(
@@ -23,14 +23,14 @@ export async function listTracksByRelease(releaseId: number) {
 
 export async function updateTrack(
   trackId: number,
-  { title, track_number, isrc }: CreateTrackInput,
+  { title, isrc }: UpdateTrackInput,
 ) {
   const result = await pool.query<Track>(
     `UPDATE tracks 
-    SET title = $1, track_number = $2, isrc = $3
-    WHERE id = $4
+    SET title = $1, isrc = $2
+    WHERE id = $3
     RETURNING *`,
-    [title, track_number, isrc ?? null, trackId]
+    [title, isrc ?? null, trackId]
   );
   if (result.rows.length === 0) return undefined;
   return result.rows[0];

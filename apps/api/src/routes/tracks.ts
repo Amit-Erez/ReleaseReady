@@ -7,7 +7,7 @@ import {
   moveTrack,
   updateTrack,
 } from "../services/tracks.js";
-import { createTrackSchema, moveTrackSchema } from "@release-ready/shared";
+import { createTrackSchema, moveTrackSchema, updateTrackSchema } from "@release-ready/shared";
 import { getReleaseById } from "../services/releases.js";
 
 export const tracksRouter = Router({ mergeParams: true });
@@ -100,7 +100,7 @@ tracksRouter.post<{ releaseId: string }>("/", async (req, res) => {
 
 trackByIdRouter.patch("/:id", async (req, res) => {
   const trackId = Number(req.params.id);
-  const trackInfo = createTrackSchema.safeParse(req.body);
+  const trackInfo = updateTrackSchema.safeParse(req.body);
 
   if (Number.isNaN(trackId)) {
     return res.status(400).json({
@@ -142,13 +142,6 @@ trackByIdRouter.patch("/:id", async (req, res) => {
     res.status(200).json(result);
   } catch (err) {
     if (err instanceof Error && (err as any).code === "23505") {
-      if ((err as any).constraint === "tracks_uniq_release_id_track_number") {
-        return res.status(409).json({
-          error: "duplicate_track_number",
-          message:
-            "A track with that track number already exists on this release",
-        });
-      }
       return res.status(409).json({
         error: "duplicate_isrc",
         message: "That ISRC is already in use",

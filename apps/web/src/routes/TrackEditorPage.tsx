@@ -6,12 +6,19 @@ import { ContributorSplitEditor } from "../components/track-editor/ContributorSp
 import { TrackEditorSkeleton } from "../components/skeletons/TrackEditorSkeleton";
 import { ErrorState } from "../components/errors/ErrorState";
 import { CompactErrorState } from "../components/errors/CompactErrorState";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchCreditsByTrackId,
   fetchReleaseById,
   fetchTracksByRelease,
+  updateExistingTrack,
 } from "../lib/api";
+import {
+  updateTrackSchema,
+  type UpdateTrackInput,
+} from "@release-ready/shared";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export function TrackEditorPage() {
   const { releaseId, trackId } = useParams<{
@@ -53,6 +60,27 @@ export function TrackEditorPage() {
 
   const track = tracks?.find((t) => t.id === Number(trackId));
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({
+    resolver: zodResolver(updateTrackSchema),
+  });
+
+  const queryClient = useQueryClient();
+  const updateTrackMutation = useMutation({
+    mutationFn: (formData: UpdateTrackInput & { trackId: string }) =>
+      updateExistingTrack(formData.trackId, formData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["tracks", releaseId],
+      });
+      reset();
+    },
+  });
+
   if (isReleaseLoading || isTracksLoading) {
     return <TrackEditorSkeleton />;
   }
@@ -93,6 +121,13 @@ export function TrackEditorPage() {
     );
   }
 
+  const onValid = (data: UpdateTrackInput) => {
+    updateTrackMutation.mutate({
+      trackId: String(track.id),
+      ...data,
+    });
+  };
+
   const canSave = track.splitsTotal === 100;
 
   return (
@@ -117,19 +152,41 @@ export function TrackEditorPage() {
         <p className="mb-2.5 text-[0.75rem]/[normal] font-bold uppercase tracking-wide text-text-soft">
           Track details
         </p>
-        <Card className="flex gap-4.5 px-5.5 py-5">
-          <div className="flex-2">
-            <Field id="track-title" label="Title" defaultValue={track.title} />
-          </div>
-          <div className="flex-2">
-            <Field
-              id="track-isrc"
-              label="ISRC"
-              defaultValue={track.isrc ?? ""}
-              placeholder="Not set"
-              hasError={!track.isrc}
-            />
-          </div>
+        <Card>
+          <form
+            onSubmit={handleSubmit(onValid)}
+            className="flex gap-4.5 px-5.5 py-5"
+          >
+            <div className="flex-2">
+              <Field
+                id="track-title"
+                label="Title"
+                defaultValue={track.title ?? ""}
+                hasError={!!errors.title}
+                hint={errors.title?.message}
+                {...register("title")}
+              />
+            </div>
+            <div className="flex-2">
+              <Field
+                id="track-isrc"
+                label="ISRC"
+                defaultValue={track.isrc ?? ""}
+                hasError={!!errors.isrc}
+                hint={errors.isrc?.message}
+                {...register("isrc")}
+              />
+            </div>
+            <div className="flex justify-center items-end max-w-30.75">
+              <Button
+                type="submit"
+                disabled={release.status === "submitted"}
+                className="flex p-0 justify-center items-center max-h-9.5"
+              >
+                Save details
+              </Button>
+            </div>
+          </form>
         </Card>
       </section>
 
@@ -164,8 +221,11 @@ export function TrackEditorPage() {
         <span className="text-[0.88rem]/[normal] text-text-soft">
           Splits must total 100% before changes can be saved.
         </span>
-        <Button disabled={!canSave || release.status === "submitted"}>
-          Save changes
+        <Button
+          disabled={!canSave || release.status === "submitted"}
+          className="flex items-center justify-center w-30.75 max-h-9.5"
+        >
+          Save splits
         </Button>
       </Card>
     </>

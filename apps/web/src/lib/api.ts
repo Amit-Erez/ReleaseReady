@@ -7,6 +7,7 @@ import type {
   Track,
   TrackCredit,
   TrackWithSplits,
+  UpdateTrackInput,
 } from "@release-ready/shared";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -108,4 +109,21 @@ export async function createNewRelease(
   }
   const release = await res.json();
   return release;
+}
+
+export async function updateExistingTrack(
+  trackId: string,
+  data: UpdateTrackInput
+): Promise<Track> {
+  const res = await fetch(`${API_URL}/api/tracks/${trackId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+   if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message);
+  }
+  const track = await res.json();
+  return track
 }

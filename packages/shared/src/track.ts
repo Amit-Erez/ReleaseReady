@@ -34,6 +34,10 @@ export const createTrackSchema = z.object({
 
 export type CreateTrackInput = z.infer<typeof createTrackSchema>;
 
+export const updateTrackSchema = createTrackSchema.omit({ track_number: true })
+
+export type UpdateTrackInput = z.infer<typeof updateTrackSchema>;
+
 export const moveTrackSchema = z.object({
   direction: z.enum(["up", "down"]),
 });
