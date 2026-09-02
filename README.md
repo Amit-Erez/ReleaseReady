@@ -130,11 +130,25 @@ part of this same week's deliverable, not separate milestones.
       existing `PUT` sibling), plus a matching loading skeleton
       (`TrackEditorSkeleton`) and two error states (full-page if the
       release or tracks fail to load, in-card if only the credits fetch
-      fails). Not yet an actual editor: the title/ISRC fields and
-      contributor rows are still display-only (`defaultValue`, no
-      `onChange`), and "+ Add contributor"/"×" remove aren't wired to
-      any state or mutation yet. Track number stays intentionally
-      read-only here — see `docs/decisions.md`.
+      fails). Track number stays intentionally read-only here — see
+      `docs/decisions.md`.
+      - Title/ISRC: fully working, its own "Save details" action
+        (React Hook Form + a new `updateTrackSchema`, independent from
+        the contributor splits save so one can't block the other),
+        enabled only when a field actually differs from the saved
+        value (`formState.isDirty`, seeded via `reset()` once the
+        track loads).
+      - Contributors & splits: row removal is fully wired
+        (`useFieldArray`'s `remove`), matched to each row by
+        `contributor_id` rather than array position so the right
+        name/role/split stay together after a row is deleted. The
+        "Total split" figure and the "Save splits" button now update
+        live as rows change (`useWatch`), not from the last-saved
+        server value. The save action itself is stubbed
+        (`console.log`, not yet calling `PUT
+        /api/tracks/:id/contributors`), and "+ Add contributor" isn't
+        wired yet — pending a decision on how a new row picks which
+        contributor it refers to.
 - [ ] "Submit release" action — button exists on the release detail
       page, but has no mutation wired up yet.
 - [x] Track reordering — `PATCH /api/tracks/:id/move` swaps a track

@@ -44,8 +44,10 @@ async function main() {
 
   const neonSkylineTrackId = tracks.rows[0].id;
   const cityLightsTrackId = tracks.rows[1].id;
+  const lowTideTrackId = tracks.rows[2].id;
   const janeDoeId = contributors.rows[0].id;
   const johnSmithId = contributors.rows[1].id;
+  const aliceBrownId = contributors.rows[2].id;
   const bobLeeId = contributors.rows[3].id;
 
   await client.query(
@@ -53,8 +55,18 @@ async function main() {
       ($1, $2, 'composer', 60.00),
       ($1, $3, 'producer', 40.00),
       ($4, $2, 'composer', 50.00),
-      ($4, $5, 'arranger', 50.00)`,
-    [neonSkylineTrackId, janeDoeId, johnSmithId, cityLightsTrackId, bobLeeId]
+      ($4, $5, 'arranger', 50.00),
+      ($6, $3, 'producer', 70.00),
+      ($6, $7, 'lyricist', 30.00)`,
+    [
+      neonSkylineTrackId,
+      janeDoeId,
+      johnSmithId,
+      cityLightsTrackId,
+      bobLeeId,
+      lowTideTrackId,
+      aliceBrownId,
+    ]
   );
 
   await client.query(
@@ -62,7 +74,7 @@ async function main() {
     [neonSkylineId]
   );
 
-  console.log('Seed complete: 4 contributors, 4 releases, 5 tracks, 4 credits, 1 submission.');
+  console.log('Seed complete: 4 contributors, 4 releases, 5 tracks, 6 credits, 1 submission.');
 
   await client.end();
 }

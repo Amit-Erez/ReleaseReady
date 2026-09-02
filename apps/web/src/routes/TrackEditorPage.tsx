@@ -19,6 +19,7 @@ import {
 } from "@release-ready/shared";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
 
 export function TrackEditorPage() {
   const { releaseId, trackId } = useParams<{
@@ -63,11 +64,17 @@ export function TrackEditorPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isDirty },
     reset,
   } = useForm({
     resolver: zodResolver(updateTrackSchema),
   });
+
+  useEffect(() => {
+    if (track) {
+      reset({ title: track.title, isrc: track.isrc ?? "" });
+    }
+  }, [track, reset]);
 
   const queryClient = useQueryClient();
   const updateTrackMutation = useMutation({
@@ -128,7 +135,6 @@ export function TrackEditorPage() {
     });
   };
 
-  const canSave = track.splitsTotal === 100;
 
   return (
     <>
@@ -161,7 +167,6 @@ export function TrackEditorPage() {
               <Field
                 id="track-title"
                 label="Title"
-                defaultValue={track.title ?? ""}
                 hasError={!!errors.title}
                 hint={errors.title?.message}
                 {...register("title")}
@@ -171,7 +176,6 @@ export function TrackEditorPage() {
               <Field
                 id="track-isrc"
                 label="ISRC"
-                defaultValue={track.isrc ?? ""}
                 hasError={!!errors.isrc}
                 hint={errors.isrc?.message}
                 {...register("isrc")}
@@ -180,7 +184,7 @@ export function TrackEditorPage() {
             <div className="flex justify-center items-end max-w-30.75">
               <Button
                 type="submit"
-                disabled={release.status === "submitted"}
+                disabled={!isDirty || release.status === "submitted"}
                 className="flex p-0 justify-center items-center max-h-9.5"
               >
                 Save details
@@ -216,18 +220,6 @@ export function TrackEditorPage() {
           )
         )}
       </section>
-
-      <Card className="mt-7 flex items-center justify-between gap-4 px-5.5 py-4.5">
-        <span className="text-[0.88rem]/[normal] text-text-soft">
-          Splits must total 100% before changes can be saved.
-        </span>
-        <Button
-          disabled={!canSave || release.status === "submitted"}
-          className="flex items-center justify-center w-30.75 max-h-9.5"
-        >
-          Save splits
-        </Button>
-      </Card>
     </>
   );
 }
