@@ -1,33 +1,99 @@
 import {
   replaceTrackContributorsSchema,
+  type Contributor,
   type Release,
   type ReplaceTrackContributorsInput,
   type TrackCredit,
 } from "@release-ready/shared";
 import { Card } from "../ui/Card";
-import { useFieldArray, useForm, useWatch } from "react-hook-form";
+import {
+  useFieldArray,
+  useForm,
+  useWatch,
+  type FieldErrors,
+  type UseFormRegister,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "../ui/Button";
+import { AddContributorDialog, type AddContributorDialogHandle } from "./AddContributorDialog";
+import { useRef } from "react";
 
 type ContributorSplitEditorProps = {
   rows: TrackCredit[];
-  splitsTotal: number | null;
   release: Release;
+  contributors: Contributor[];
+  releaseId: string;
 };
 
-const ROLE_LABELS: Record<TrackCredit["role"], string> = {
+type ContributorsFormValues = z.input<typeof replaceTrackContributorsSchema>;
+
+type ContributorCellProps = {
+  rows: TrackCredit[];
+  id: number;
+  index: number;
+  register: UseFormRegister<{ contributors: ContributorsFormValues }>;
+  contributors: Contributor[];
+  errors: FieldErrors<{ contributors: ContributorsFormValues }>;
+};
+
+export const ROLE_LABELS: Record<TrackCredit["role"], string> = {
   composer: "Composer",
   producer: "Producer",
   arranger: "Arranger",
   lyricist: "Lyricist",
 };
 
+function ContributorCell({
+  rows,
+  id,
+  index,
+  register,
+  contributors,
+  errors,
+}: ContributorCellProps) {
+  const existingContributor = rows.find((r) => r.contributor_id === id);
+
+  return existingContributor ? (
+    <span className="text-[0.95rem]/[normal] font-bold text-text">
+      {existingContributor.name}
+    </span>
+  ) : (
+    <div>
+      <select
+        {...register(`contributors.${index}.contributor_id`)}
+        className={`w-full rounded-sm border ${
+          errors.contributors?.[index]?.contributor_id
+            ? "border-critical"
+            : "border-border"
+        } bg-page px-2.5 py-1.75 text-[0.88rem]/[normal] text-text focus-visible:outline-2 focus-visible:outline-offset-1 ${
+          errors.contributors?.[index]?.contributor_id
+            ? "focus-visible:outline-critical"
+            : "focus-visible:outline-accent"
+        }`}
+      >
+        {contributors.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name}
+          </option>
+        ))}
+      </select>
+      {errors.contributors?.[index]?.contributor_id && (
+        <p className="mt-1 text-[0.74rem]/[normal] text-text-soft">
+          {errors.contributors[index]?.contributor_id?.message}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function ContributorSplitEditor({
   rows,
-  splitsTotal,
   release,
+  contributors,
+  releaseId
 }: ContributorSplitEditorProps) {
+  const addContributorDialogRef = useRef<AddContributorDialogHandle>(null);
   const {
     register,
     control,
@@ -57,11 +123,12 @@ export function ContributorSplitEditor({
     name: "contributors",
   });
 
-  const onValid = ((data: { contributors: ReplaceTrackContributorsInput }) => {
-  console.log(data); 
-});
+  const onValid = (data: { contributors: ReplaceTrackContributorsInput }) => {
+    console.log(data);
+  };
 
   return (
+    <>
     <form onSubmit={handleSubmit(onValid)}>
       <Card>
         <div className="grid grid-cols-[2fr_1.2fr_0.9fr_40px] items-center gap-3.5 border-b border-border px-5.5 pt-3.5 pb-2.5 text-[0.72rem]/[normal] font-bold uppercase tracking-wide text-text-soft">
@@ -75,12 +142,14 @@ export function ContributorSplitEditor({
             key={field.id}
             className="grid grid-cols-[2fr_1.2fr_0.9fr_40px] items-center gap-3.5 border-b border-border px-5.5 py-3"
           >
-            <span className="text-[0.95rem]/[normal] font-bold text-text">
-              {
-                rows.find((r) => r.contributor_id === field.contributor_id)
-                  ?.name
-              }
-            </span>
+            <ContributorCell
+              rows={rows}
+              id={Number(field.contributor_id)}
+              index={index}
+              register={register}
+              contributors={contributors}
+              errors={errors}
+            />
             <select
               aria-label={`Role for ${rows.find((r) => r.contributor_id === field.contributor_id)?.name}`}
               className="w-full rounded-sm border border-border bg-page px-2.5 py-1.75 text-[0.88rem]/[normal] text-text focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
@@ -92,19 +161,36 @@ export function ContributorSplitEditor({
                 </option>
               ))}
             </select>
-            <div className="relative">
-              <input
-                type="number"
-                aria-label={`Split percent for ${rows.find((r) => r.contributor_id === field.contributor_id)?.name}`}
-                className="w-full p-1 rounded-sm border border-border bg-page pr-6 text-right text-[0.88rem]/[normal] text-text focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
-                {...register(`contributors.${index}.split_percent`)}
-              />
-              <span
-                className="pointer-events-none absolute top-1/2 right-4.5 -translate-y-1/2 text-[0.85rem]/[normal] text-text-soft"
-                aria-hidden="true"
-              >
-                %
-              </span>
+            <div>
+              <div className="relative">
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  aria-label={`Split percent for ${rows.find((r) => r.contributor_id === field.contributor_id)?.name}`}
+                  className={`w-full p-1 rounded-sm border ${
+                    errors.contributors?.[index]?.split_percent
+                      ? "border-critical"
+                      : "border-border"
+                  } bg-page pr-6 text-right text-[0.88rem]/[normal] text-text focus-visible:outline-2 focus-visible:outline-offset-1 ${
+                    errors.contributors?.[index]?.split_percent
+                      ? "focus-visible:outline-critical"
+                      : "focus-visible:outline-accent"
+                  }`}
+                  {...register(`contributors.${index}.split_percent`)}
+                />
+                <span
+                  className="pointer-events-none absolute top-1/2 right-4.5 -translate-y-1/2 text-[0.85rem]/[normal] text-text-soft"
+                  aria-hidden="true"
+                >
+                  %
+                </span>
+              </div>
+              {errors.contributors?.[index]?.split_percent && (
+                <p className="mt-1 text-[0.74rem]/[normal] text-text-soft">
+                  {errors.contributors[index]?.split_percent?.message}
+                </p>
+              )}
             </div>
             {release.status !== "submitted" && (
               <button
@@ -119,14 +205,30 @@ export function ContributorSplitEditor({
           </div>
         ))}
 
-        <div className="border-b border-border px-5.5 py-3">
+        <div className="flex border-b border-border px-5.5 py-3">
           {release.status !== "submitted" && (
-            <button
-              type="button"
-              className="w-full rounded-sm border border-dashed border-border p-2.5 text-[0.88rem]/[normal] font-semibold text-text-soft hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
-              + Add contributor
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => addContributorDialogRef.current?.open()}
+                className="w-1/4 mr-2 bg-accent/10 rounded-sm border border-dashed border-accent p-2.5 text-[0.88rem]/[normal] font-semibold text-accent hover:border-accent hover:text-accent hover:bg-accent/14 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              >
+                + Add contributor
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  append({
+                    contributor_id: 0,
+                    role: "composer",
+                    split_percent: 0,
+                  })
+                }
+                className="w-full rounded-sm border border-dashed border-border p-2.5 text-[0.88rem]/[normal] font-semibold text-text-soft hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              >
+                + Add line
+              </button>
+            </>
           )}
         </div>
 
@@ -142,7 +244,7 @@ export function ContributorSplitEditor({
           </span>
         </div>
       </Card>
-            <Card className="mt-7 flex items-center justify-between gap-4 px-5.5 py-4.5">
+      <Card className="mt-7 flex items-center justify-between gap-4 px-5.5 py-4.5">
         <span className="text-[0.88rem]/[normal] text-text-soft">
           Splits must total 100% before changes can be saved.
         </span>
@@ -155,5 +257,7 @@ export function ContributorSplitEditor({
         </Button>
       </Card>
     </form>
+    <AddContributorDialog ref={addContributorDialogRef} releaseId={releaseId} />
+    </>
   );
 }

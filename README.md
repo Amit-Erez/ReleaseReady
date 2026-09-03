@@ -138,17 +138,32 @@ part of this same week's deliverable, not separate milestones.
         enabled only when a field actually differs from the saved
         value (`formState.isDirty`, seeded via `reset()` once the
         track loads).
-      - Contributors & splits: row removal is fully wired
-        (`useFieldArray`'s `remove`), matched to each row by
+      - Contributors & splits: row add/remove is fully wired
+        (`useFieldArray`'s `append`/`remove`), matched to each row by
         `contributor_id` rather than array position so the right
-        name/role/split stay together after a row is deleted. The
-        "Total split" figure and the "Save splits" button now update
-        live as rows change (`useWatch`), not from the last-saved
-        server value. The save action itself is stubbed
-        (`console.log`, not yet calling `PUT
-        /api/tracks/:id/contributors`), and "+ Add contributor" isn't
-        wired yet — pending a decision on how a new row picks which
-        contributor it refers to.
+        name/role/split stay together after a row is added or
+        removed. The "Total split" figure and the "Save splits"
+        button (now living inside `ContributorSplitEditor` itself,
+        alongside the fields it submits) update live as rows change
+        (`useWatch`), not from the last-saved server value.
+        `contributor_id`/`split_percent` use `z.coerce.number()`
+        (HTML inputs always deliver strings) with a `.positive()`
+        constraint and a custom message on `contributor_id`, and both
+        fields show a real error state (red border + message) driven
+        by `formState.errors`; `role` deliberately has none, since its
+        `<select>` can never hold an invalid value. A new
+        `AddContributorDialog` creates a genuinely new contributor
+        (`POST /api/contributors`) and injects it into the release-
+        scoped picker list via `queryClient.setQueryData` rather than
+        an invalidation — the release-scoped `GET` endpoint only
+        returns people already credited somewhere on the release, so
+        a freshly-created, not-yet-credited person would never come
+        back from a refetch. Known, accepted limitation: creating a
+        contributor and abandoning the flow before assigning/saving
+        them leaves a permanently orphaned, unreachable `contributors`
+        row — deliberately not solved yet. The save action itself is
+        still stubbed (`console.log`, not yet calling `PUT
+        /api/tracks/:id/contributors`) — that's the next piece.
 - [ ] "Submit release" action — button exists on the release detail
       page, but has no mutation wired up yet.
 - [x] Track reordering — `PATCH /api/tracks/:id/move` swaps a track

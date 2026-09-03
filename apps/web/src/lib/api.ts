@@ -1,4 +1,6 @@
 import type {
+  Contributor,
+  CreateContributorInput,
   CreateReleaseInput,
   CreateTrackInput,
   MoveTrackInput,
@@ -52,7 +54,9 @@ export async function fetchTracksByRelease(
   return data;
 }
 
-export async function fetchCreditsByTrackId(id?: string): Promise<TrackCredit[]> {
+export async function fetchCreditsByTrackId(
+  id?: string,
+): Promise<TrackCredit[]> {
   const res = await fetch(`${API_URL}/api/tracks/${id}/contributors`);
   if (!res.ok) {
     const errorData = await res.json();
@@ -113,17 +117,45 @@ export async function createNewRelease(
 
 export async function updateExistingTrack(
   trackId: string,
-  data: UpdateTrackInput
+  data: UpdateTrackInput,
 ): Promise<Track> {
   const res = await fetch(`${API_URL}/api/tracks/${trackId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-   if (!res.ok) {
+  if (!res.ok) {
     const errorData = await res.json();
     throw new Error(errorData.message);
   }
   const track = await res.json();
-  return track
+  return track;
+}
+
+export async function fetchContributorsByReleaseId(
+  id?: string,
+): Promise<Contributor[]> {
+  const res = await fetch(`${API_URL}/api/releases/${id}/contributors`);
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message);
+  }
+  const contributors = await res.json();
+  return contributors;
+}
+
+export async function addContributor(
+  data: CreateContributorInput,
+): Promise<Contributor> {
+  const res = await fetch(`${API_URL}/api/contributors`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message);
+  }
+  const contributor = await res.json();
+  return contributor;
 }

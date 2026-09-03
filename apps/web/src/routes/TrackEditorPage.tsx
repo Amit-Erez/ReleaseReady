@@ -8,6 +8,7 @@ import { ErrorState } from "../components/errors/ErrorState";
 import { CompactErrorState } from "../components/errors/CompactErrorState";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  fetchContributorsByReleaseId,
   fetchCreditsByTrackId,
   fetchReleaseById,
   fetchTracksByRelease,
@@ -57,6 +58,11 @@ export function TrackEditorPage() {
   } = useQuery({
     queryKey: ["credits", trackId],
     queryFn: () => fetchCreditsByTrackId(trackId),
+  });
+
+  const { data: contributors } = useQuery({
+    queryKey: ["contributors", releaseId],
+    queryFn: () => fetchContributorsByReleaseId(releaseId),
   });
 
   const track = tracks?.find((t) => t.id === Number(trackId));
@@ -135,7 +141,6 @@ export function TrackEditorPage() {
     });
   };
 
-
   return (
     <>
       <Link
@@ -211,11 +216,12 @@ export function TrackEditorPage() {
             />
           </Card>
         ) : (
-          credits && (
+          credits && contributors && releaseId && (
             <ContributorSplitEditor
               rows={credits}
-              splitsTotal={track.splitsTotal}
               release={release}
+              contributors={contributors}
+              releaseId={releaseId}
             />
           )
         )}
