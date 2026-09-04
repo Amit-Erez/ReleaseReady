@@ -122,7 +122,7 @@ part of this same week's deliverable, not separate milestones.
       in-card one if only the tracks fetch fails). `AddTrackDialog` is
       fully wired — React Hook Form + a Zod resolver, a real mutation
       that creates the track and refreshes the list on success.
-- [ ] Track & contributor editor
+- [x] Track & contributor editor
       (`/releases/:releaseId/tracks/:trackId`) — real data wiring
       done: fetches the release, its tracks, and a new
       `GET /api/tracks/:id/contributors` endpoint (joins
@@ -161,9 +161,14 @@ part of this same week's deliverable, not separate milestones.
         back from a refetch. Known, accepted limitation: creating a
         contributor and abandoning the flow before assigning/saving
         them leaves a permanently orphaned, unreachable `contributors`
-        row — deliberately not solved yet. The save action itself is
-        still stubbed (`console.log`, not yet calling `PUT
-        /api/tracks/:id/contributors`) — that's the next piece.
+        row — deliberately not solved yet. "Save splits" now calls the
+        real `PUT /api/tracks/:id/contributors`; on success the
+        credits query is invalidated and a `useEffect` watching the
+        refetched rows calls `reset()` to resync the form's own
+        internal state, since `defaultValues` only seeds once at mount
+        and doesn't otherwise follow prop updates — without it, a
+        newly-added row's picker wouldn't turn back into plain text
+        after saving.
 - [ ] "Submit release" action — button exists on the release detail
       page, but has no mutation wired up yet.
 - [x] Track reordering — `PATCH /api/tracks/:id/move` swaps a track

@@ -6,6 +6,7 @@ import type {
   MoveTrackInput,
   Release,
   ReleaseWithReadiness,
+  ReplaceTrackContributorsInput,
   Track,
   TrackCredit,
   TrackWithSplits,
@@ -158,4 +159,21 @@ export async function addContributor(
   }
   const contributor = await res.json();
   return contributor;
+}
+
+export async function createTrackCreditSplits(
+  data: ReplaceTrackContributorsInput,
+  trackId: string,
+): Promise<TrackCredit[]> {
+  const res = await fetch(`${API_URL}/api/tracks/${trackId}/contributors`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message);
+  }
+  const splits = await res.json();
+  return splits;
 }

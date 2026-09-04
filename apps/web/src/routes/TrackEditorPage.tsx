@@ -216,12 +216,13 @@ export function TrackEditorPage() {
             />
           </Card>
         ) : (
-          credits && contributors && releaseId && (
+          credits && contributors && releaseId && trackId && (
             <ContributorSplitEditor
               rows={credits}
               release={release}
               contributors={contributors}
               releaseId={releaseId}
+              trackId={trackId}
             />
           )
         )}
