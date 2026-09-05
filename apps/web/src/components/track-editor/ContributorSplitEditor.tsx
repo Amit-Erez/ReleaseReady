@@ -32,15 +32,15 @@ type ContributorSplitEditorProps = {
   trackId: string;
 };
 
-type ContributorsFormValues = z.input<typeof replaceTrackContributorsSchema>;
+type CreditsFormValues = z.input<typeof replaceTrackContributorsSchema>;
 
 type ContributorCellProps = {
   rows: TrackCredit[];
   id: number;
   index: number;
-  register: UseFormRegister<{ contributors: ContributorsFormValues }>;
+  register: UseFormRegister<{ credits: CreditsFormValues }>;
   contributors: Contributor[];
-  errors: FieldErrors<{ contributors: ContributorsFormValues }>;
+  errors: FieldErrors<{ credits: CreditsFormValues }>;
 };
 
 export const ROLE_LABELS: Record<TrackCredit["role"], string> = {
@@ -67,13 +67,13 @@ function ContributorCell({
   ) : (
     <div>
       <select
-        {...register(`contributors.${index}.contributor_id`)}
+        {...register(`credits.${index}.contributor_id`)}
         className={`w-full rounded-sm border ${
-          errors.contributors?.[index]?.contributor_id
+          errors.credits?.[index]?.contributor_id
             ? "border-critical"
             : "border-border"
         } bg-page px-2.5 py-1.75 text-[0.88rem]/[normal] text-text focus-visible:outline-2 focus-visible:outline-offset-1 ${
-          errors.contributors?.[index]?.contributor_id
+          errors.credits?.[index]?.contributor_id
             ? "focus-visible:outline-critical"
             : "focus-visible:outline-accent"
         }`}
@@ -84,9 +84,9 @@ function ContributorCell({
           </option>
         ))}
       </select>
-      {errors.contributors?.[index]?.contributor_id && (
+      {errors.credits?.[index]?.contributor_id && (
         <p className="mt-1 text-[0.74rem]/[normal] text-text-soft">
-          {errors.contributors[index]?.contributor_id?.message}
+          {errors.credits[index]?.contributor_id?.message}
         </p>
       )}
     </div>
@@ -108,18 +108,16 @@ export function ContributorSplitEditor({
     reset,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(
-      z.object({ contributors: replaceTrackContributorsSchema }),
-    ),
-    defaultValues: { contributors: rows },
+    resolver: zodResolver(z.object({ credits: replaceTrackContributorsSchema })),
+    defaultValues: { credits: rows },
   });
 
-  const watchedContributors = useWatch({
+  const watchedCredits = useWatch({
     control,
-    name: "contributors",
+    name: "credits",
   });
 
-  const liveSplitsTotal = (watchedContributors ?? []).reduce(
+  const liveSplitsTotal = (watchedCredits ?? []).reduce(
     (sum, c) => sum + Number(c.split_percent || 0),
     0,
   );
@@ -128,13 +126,13 @@ export function ContributorSplitEditor({
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "contributors",
+    name: "credits",
   });
 
   const queryClient = useQueryClient();
   const updateCreditsMutation = useMutation({
-    mutationFn: (formData: {contributors: ReplaceTrackContributorsInput;  trackId: string }) =>
-      createTrackCreditSplits(formData.contributors, formData.trackId),
+    mutationFn: (formData: { credits: ReplaceTrackContributorsInput; trackId: string }) =>
+      createTrackCreditSplits(formData.credits, formData.trackId),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["credits", trackId],
@@ -142,15 +140,16 @@ export function ContributorSplitEditor({
     },
   });
 
-  const onValid = (data: { contributors: ReplaceTrackContributorsInput }) => {
-  updateCreditsMutation.mutate({
-    ...data, trackId: trackId
-  })
+  const onValid = (data: { credits: ReplaceTrackContributorsInput }) => {
+    updateCreditsMutation.mutate({
+      ...data,
+      trackId: trackId,
+    });
   };
 
   useEffect(() => {
-      reset({contributors: rows})
-  }, [rows, reset])
+    reset({ credits: rows });
+  }, [rows, reset]);
 
   return (
     <>
@@ -178,7 +177,7 @@ export function ContributorSplitEditor({
               <select
                 aria-label={`Role for ${rows.find((r) => r.contributor_id === field.contributor_id)?.name}`}
                 className="w-full rounded-sm border border-border bg-page px-2.5 py-1.75 text-[0.88rem]/[normal] text-text focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
-                {...register(`contributors.${index}.role`)}
+                {...register(`credits.${index}.role`)}
               >
                 {Object.entries(ROLE_LABELS).map(([value, label]) => (
                   <option key={value} value={value}>
@@ -194,15 +193,15 @@ export function ContributorSplitEditor({
                     max="100"
                     aria-label={`Split percent for ${rows.find((r) => r.contributor_id === field.contributor_id)?.name}`}
                     className={`w-full p-1 rounded-sm border ${
-                      errors.contributors?.[index]?.split_percent
+                      errors.credits?.[index]?.split_percent
                         ? "border-critical"
                         : "border-border"
                     } bg-page pr-6 text-right text-[0.88rem]/[normal] text-text focus-visible:outline-2 focus-visible:outline-offset-1 ${
-                      errors.contributors?.[index]?.split_percent
+                      errors.credits?.[index]?.split_percent
                         ? "focus-visible:outline-critical"
                         : "focus-visible:outline-accent"
                     }`}
-                    {...register(`contributors.${index}.split_percent`)}
+                    {...register(`credits.${index}.split_percent`)}
                   />
                   <span
                     className="pointer-events-none absolute top-1/2 right-4.5 -translate-y-1/2 text-[0.85rem]/[normal] text-text-soft"
@@ -211,9 +210,9 @@ export function ContributorSplitEditor({
                     %
                   </span>
                 </div>
-                {errors.contributors?.[index]?.split_percent && (
+                {errors.credits?.[index]?.split_percent && (
                   <p className="mt-1 text-[0.74rem]/[normal] text-text-soft">
-                    {errors.contributors[index]?.split_percent?.message}
+                    {errors.credits[index]?.split_percent?.message}
                   </p>
                 )}
               </div>
@@ -284,10 +283,7 @@ export function ContributorSplitEditor({
           </Button>
         </Card>
       </form>
-      <AddContributorDialog
-        ref={addContributorDialogRef}
-        releaseId={releaseId}
-      />
+      <AddContributorDialog ref={addContributorDialogRef} releaseId={releaseId} />
     </>
   );
 }
