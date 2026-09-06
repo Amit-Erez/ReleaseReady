@@ -191,6 +191,16 @@ part of this same week's deliverable, not separate milestones.
       only covers the initial release fetch). `TracksTableSkeleton`
       is shared between both call sites so the row markup isn't
       duplicated.
+- [x] Empty states — the releases list distinguishes a genuinely
+      empty catalogue from a status filter matching nothing, and the
+      release detail page's Tracks card shows a message when a release
+      has no tracks yet. New `EmptyState`/`CompactEmptyState`
+      components (`components/empty/`) mirror the existing
+      `ErrorState`/`CompactErrorState` pair, styled neutral instead of
+      critical. The Track & Contributor editor's split editor was
+      checked too but already degrades gracefully with zero rows
+      (headers and add-row prompts stay visible), so it needed no
+      change.
 
 Fixture data for what's still unwired lives in
 `apps/web/src/lib/placeholderData.ts`, typed against the real
