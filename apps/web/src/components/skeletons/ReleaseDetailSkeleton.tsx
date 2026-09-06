@@ -1,7 +1,7 @@
 import { SkeletonBar } from "./SkeletonBar";
+import { TracksTableSkeleton } from "./TracksTableSkeleton";
 import { Card } from "../ui/Card";
 
-const TRACK_SKELETON_ROW_COUNT = 3;
 const READINESS_SKELETON_ROW_COUNT = 6;
 
 /**
@@ -47,24 +47,7 @@ export function ReleaseDetailSkeleton() {
                     <th className="px-5 py-3" />
                   </tr>
                 </thead>
-                <tbody>
-                  {Array.from({ length: TRACK_SKELETON_ROW_COUNT }).map((_, i) => (
-                    <tr key={i} className="border-b border-border last:border-b-0">
-                      <td className="px-5 py-3.5">
-                        <SkeletonBar className="w-3.5" />
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <SkeletonBar className="w-3/4" />
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <SkeletonBar className="w-5/6" />
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <SkeletonBar className="w-1/2" />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+                <TracksTableSkeleton />
               </table>
             </Card>
           </section>

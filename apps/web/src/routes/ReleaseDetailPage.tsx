@@ -12,6 +12,7 @@ import { formatReleaseDate } from "../lib/format";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchReleaseById, fetchTracksByRelease, moveTrack, submitReleaseForDistribution } from "../lib/api";
 import { ReleaseDetailSkeleton } from "../components/skeletons/ReleaseDetailSkeleton";
+import { TracksTableSkeleton } from "../components/skeletons/TracksTableSkeleton";
 import { ErrorState } from "../components/errors/ErrorState";
 import { CompactErrorState } from "../components/errors/CompactErrorState";
 
@@ -32,6 +33,7 @@ export function ReleaseDetailPage() {
 
   const {
     data: tracks,
+    isLoading: isTracksLoading,
     isError: isTracksError,
     error: tracksError,
     refetch: refetchTracks,
@@ -180,6 +182,41 @@ export function ReleaseDetailPage() {
                 }
                 onRetry={() => refetchTracks()}
               />
+            ) : isTracksLoading ? (
+              <div role="status" aria-live="polite" className="min-h-0 flex-1 overflow-hidden">
+                <span className="sr-only">Loading tracks…</span>
+                <table className="w-full border-collapse" aria-hidden="true">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th
+                        scope="col"
+                        className="px-5 py-3 text-left text-[0.72rem]/[normal] font-bold uppercase tracking-wide text-text-soft"
+                      >
+                        #
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-5 py-3 text-left text-[0.72rem]/[normal] font-bold uppercase tracking-wide text-text-soft"
+                      >
+                        Title
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-5 py-3 text-left text-[0.72rem]/[normal] font-bold uppercase tracking-wide text-text-soft"
+                      >
+                        ISRC
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-5 py-3 text-left text-[0.72rem]/[normal] font-bold uppercase tracking-wide text-text-soft"
+                      >
+                        Splits
+                      </th>
+                    </tr>
+                  </thead>
+                  <TracksTableSkeleton />
+                </table>
+              </div>
             ) : (
               <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
                 <table className="w-full border-collapse">

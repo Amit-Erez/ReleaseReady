@@ -93,7 +93,7 @@ Requires a local PostgreSQL database and a `DATABASE_URL` set in
       migrations, then runs the test suite, on every push and pull
       request to `main`. Badge at the top of this README.
 
-**Week 3 (small frontend — connect React to the real API): in progress.**
+**Week 3 (small frontend — connect React to the real API): done.**
 Built in two deliberate passes: static UI first (placeholder data, no
 `fetch`), then wired to the real API screen by screen. Both passes are
 part of this same week's deliverable, not separate milestones.
@@ -185,6 +185,12 @@ part of this same week's deliverable, not separate milestones.
       is the one place it changes (see `docs/decisions.md`). Mouse
       drag-and-drop is deferred to a later pass; the same endpoint will
       support it without backend changes.
+- [x] Tracks-specific loading skeleton — the release detail page's
+      Tracks card now shows its own skeleton rows while the tracks
+      fetch is in flight, independent of the page-level skeleton (which
+      only covers the initial release fetch). `TracksTableSkeleton`
+      is shared between both call sites so the row markup isn't
+      duplicated.
 
 Fixture data for what's still unwired lives in
 `apps/web/src/lib/placeholderData.ts`, typed against the real
