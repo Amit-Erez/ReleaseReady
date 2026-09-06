@@ -15,6 +15,7 @@ import { ReleaseDetailSkeleton } from "../components/skeletons/ReleaseDetailSkel
 import { TracksTableSkeleton } from "../components/skeletons/TracksTableSkeleton";
 import { ErrorState } from "../components/errors/ErrorState";
 import { CompactErrorState } from "../components/errors/CompactErrorState";
+import { CompactEmptyState } from "../components/empty/CompactEmptyState";
 
 export function ReleaseDetailPage() {
   const { releaseId } = useParams<{ releaseId: string }>();
@@ -217,6 +218,11 @@ export function ReleaseDetailPage() {
                   <TracksTableSkeleton />
                 </table>
               </div>
+            ) : tracks?.length === 0 ? (
+              <CompactEmptyState
+                title="No tracks yet"
+                message="Add a track to get started."
+              />
             ) : (
               <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
                 <table className="w-full border-collapse">

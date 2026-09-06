@@ -13,6 +13,7 @@ import { fetchReleases } from "../lib/api";
 import type { ReleaseWithReadiness } from "@release-ready/shared";
 import { ReleasesTableSkeleton } from "../components/skeletons/ReleasesTableSkeleton";
 import { ErrorState } from "../components/errors/ErrorState";
+import { EmptyState } from "../components/empty/EmptyState";
 
 type StatusFilter = "all" | "draft" | "submitted";
 
@@ -117,6 +118,24 @@ export function ReleasesListPage() {
           />
         ) : isLoading ? (
           <ReleasesTableSkeleton />
+        ) : result?.length === 0 ? (
+          <EmptyState
+            title="No releases yet"
+            message="Create your first release to start tracking its readiness for submission."
+            action={{
+              label: "+ New Release",
+              onClick: () => dialogHandleRef.current?.open(),
+            }}
+          />
+        ) : visibleReleases?.length === 0 ? (
+          <EmptyState
+            title={`No ${statusFilter} releases`}
+            message="No releases match this filter."
+            action={{
+              label: "Show all releases",
+              onClick: () => setStatusFilter("all"),
+            }}
+          />
         ) : (
           <table className="w-full border-collapse">
             <thead>
