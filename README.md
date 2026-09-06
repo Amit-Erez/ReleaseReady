@@ -169,8 +169,11 @@ part of this same week's deliverable, not separate milestones.
         and doesn't otherwise follow prop updates — without it, a
         newly-added row's picker wouldn't turn back into plain text
         after saving.
-- [ ] "Submit release" action — button exists on the release detail
-      page, but has no mutation wired up yet.
+- [x] "Submit release" action — real mutation calling
+      `POST /api/releases/:id/submit`; button disables and relabels
+      ("Submitting…") while in flight (on top of the existing
+      readiness-check gating), and the release query is invalidated
+      on success so the page flips to "Already submitted".
 - [x] Track reordering — `PATCH /api/tracks/:id/move` swaps a track
       with its neighbor via a single atomic `UPDATE`; required making
       the `(release_id, track_number)` unique constraint deferrable,
