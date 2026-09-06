@@ -10,7 +10,7 @@ import {
 } from "../components/release-detail/AddTrackDialog";
 import { formatReleaseDate } from "../lib/format";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchReleaseById, fetchTracksByRelease, moveTrack } from "../lib/api";
+import { fetchReleaseById, fetchTracksByRelease, moveTrack, submitReleaseForDistribution } from "../lib/api";
 import { ReleaseDetailSkeleton } from "../components/skeletons/ReleaseDetailSkeleton";
 import { ErrorState } from "../components/errors/ErrorState";
 import { CompactErrorState } from "../components/errors/CompactErrorState";
@@ -53,6 +53,15 @@ export function ReleaseDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["tracks", releaseId] });
     },
   });
+
+  const submitReleaseMutation = useMutation({
+    mutationFn: () => submitReleaseForDistribution(releaseId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["release", releaseId]})
+    },
+  });
+
+
 
   if (isError) {
     return (
@@ -287,15 +296,15 @@ export function ReleaseDetailPage() {
           </Card>
         </section>
       </div>
-
+            {release && 
       <Card className="mt-7 flex items-center justify-between gap-4 px-5.5 py-4.5">
         <span
           className={`inline-flex items-center gap-2 text-[0.95rem]/[normal] font-semibold ${release.readinessSummary.checksPassed === release.readinessSummary.checksTotal ? "text-good" : "text-critical"}`}
-        >
+          >
           <span
             className={`h-2.25 w-2.25 rounded-full ${release.readinessSummary.checksPassed === release.readinessSummary.checksTotal ? "bg-good" : "bg-critical"}`}
             aria-hidden="true"
-          />
+            />
           {release.readinessSummary.checksPassed} /{" "}
           {release.readinessSummary.checksTotal} checks passing
         </span>
@@ -305,15 +314,17 @@ export function ReleaseDetailPage() {
           </span>
         ) : (
           <Button
-            disabled={
-              release.readinessSummary.checksPassed <
-              release.readinessSummary.checksTotal
-            }
-          >
-            Submit release
+          disabled={
+            submitReleaseMutation.isPending ||
+            release.readinessSummary.checksPassed <
+            release.readinessSummary.checksTotal
+          }
+          onClick={() => submitReleaseMutation.mutate()}>
+            {submitReleaseMutation.isPending ? "Submitting…" : "Submit release"}
           </Button>
         )}
       </Card>
+      }
       {tracks && releaseId && (
         <AddTrackDialog
           ref={addTrackDialogRef}

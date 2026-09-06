@@ -7,6 +7,7 @@ import type {
   Release,
   ReleaseWithReadiness,
   ReplaceTrackContributorsInput,
+  Submission,
   Track,
   TrackCredit,
   TrackWithSplits,
@@ -176,4 +177,18 @@ export async function createTrackCreditSplits(
   }
   const splits = await res.json();
   return splits;
+}
+
+export async function submitReleaseForDistribution(
+  id?: string 
+): Promise<Submission> {
+ const res = await fetch(`${API_URL}/api/releases/${id}/submit`, {
+    method: "POST",
+ });
+   if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message);
+  }
+  const submissionRecord = await res.json();
+  return submissionRecord;
 }
