@@ -205,3 +205,16 @@ part of this same week's deliverable, not separate milestones.
 Fixture data for what's still unwired lives in
 `apps/web/src/lib/placeholderData.ts`, typed against the real
 `@release-ready/shared` schemas.
+
+**Week 4 (proof and deployment): in progress.**
+- [x] Accessibility pass (keyboard, labels) — manual keyboard-only
+      walkthrough of all three screens, since Lighthouse only checks
+      static markup and can't catch focus-order or usability issues
+      that only show up mid-interaction. Found one real issue: adding
+      a credit line left focus on the Role select instead of
+      Contributor. Fixed by giving each row's Contributor select a
+      predictable `id` and focusing it directly in an effect that
+      only fires when a row is added. Everything else checked out —
+      DOM tab order was already correct throughout, and the landing
+      page needing one `Tab` press to reach its link is expected
+      browser behavior, not a bug.
