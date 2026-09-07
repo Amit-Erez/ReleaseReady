@@ -67,6 +67,7 @@ function ContributorCell({
   ) : (
     <div>
       <select
+        id={`credit-contributor-${index}`}
         {...register(`credits.${index}.contributor_id`)}
         className={`w-full rounded-sm border ${
           errors.credits?.[index]?.contributor_id
@@ -128,6 +129,17 @@ export function ContributorSplitEditor({
     control,
     name: "credits",
   });
+
+  const prevFieldsLengthRef = useRef(fields.length);
+
+  useEffect(() => {
+    if (fields.length > prevFieldsLengthRef.current) {
+      document
+        .getElementById(`credit-contributor-${fields.length - 1}`)
+        ?.focus();
+    }
+    prevFieldsLengthRef.current = fields.length;
+  }, [fields.length]);
 
   const queryClient = useQueryClient();
   const updateCreditsMutation = useMutation({
