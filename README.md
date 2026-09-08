@@ -218,3 +218,11 @@ Fixture data for what's still unwired lives in
       DOM tab order was already correct throughout, and the landing
       page needing one `Tab` press to reach its link is expected
       browser behavior, not a bug.
+- [x] The one React component test — `ContributorSplitEditor`, chosen
+      per the brief's own suggested scope: live total updates as
+      splits change, and "Save splits" is disabled while the total is
+      off 100% and enables once it hits exactly 100%. First test
+      infrastructure for `apps/web` (`vitest.config.ts`,
+      `src/test/setup.ts` wiring up `@testing-library/jest-dom`'s
+      Vitest-specific entry point, `npm run test -w apps/web`) — the
+      backend already had this, the frontend didn't.
