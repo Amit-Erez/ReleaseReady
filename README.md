@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/Amit-Erez/ReleaseReady/actions/workflows/ci.yml/badge.svg)](https://github.com/Amit-Erez/ReleaseReady/actions/workflows/ci.yml)
 
+**Live demo:** [release-ready-ten.vercel.app](https://release-ready-ten.vercel.app/) — API on Render's free tier, so the first load after a period of inactivity can take up to a minute while it spins back up; it's fast on every load after that.
+
 A small full-stack tool for tracking music release readiness — catalogue releases and tracks, manage contributor credits and splits, and run a readiness check before submission. Built as a portfolio project rooted in real digital-distribution QA experience.
 
 ## Stack
@@ -207,6 +209,27 @@ Fixture data for what's still unwired lives in
 `@release-ready/shared` schemas.
 
 **Week 4 (proof and deployment): in progress.**
+- [x] Deployed: Neon (PostgreSQL) + Render (API) + Vercel (frontend),
+      with seeded demo data. Two real fixes needed to get the API
+      actually running in production, neither caught by CI or local
+      dev since both only ever exercise different code paths:
+      `apps/api`'s `start` script now runs via `tsx` instead of
+      `node dist/index.js` — `packages/shared` has no build step of
+      its own (consumed as raw source), so plain `node` crashed
+      trying to execute a `.ts` file directly; and `db.ts`/`seed.ts`
+      now enable SSL when `NODE_ENV=production`, since Neon requires
+      encrypted connections and local Postgres doesn't use them.
+      Render's free tier has no pre-deploy hook, so migrations run
+      by chaining them into the start command instead
+      (`migrate:up && start` — safe to repeat, since `node-pg-migrate`
+      tracks what's already applied). On Vercel, the monorepo's
+      `packages/shared` wasn't reachable with Root Directory scoped
+      to `apps/web` (even with "include files outside root" enabled,
+      since that only affects file visibility, not where the install
+      command actually runs) — fixed by clearing Root Directory and
+      using an explicit `npm run build -w apps/web` + `apps/web/dist`
+      output directory instead, so the install genuinely runs from
+      the workspace root.
 - [x] Accessibility pass (keyboard, labels) — manual keyboard-only
       walkthrough of all three screens, since Lighthouse only checks
       static markup and can't catch focus-order or usability issues
