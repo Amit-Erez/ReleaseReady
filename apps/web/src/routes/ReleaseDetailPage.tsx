@@ -155,7 +155,7 @@ export function ReleaseDetailPage() {
         </div>
       </div>
 
-      <div className="flex items-start gap-6">
+      <div className="flex flex-col items-stretch gap-6 md:flex-row md:items-start">
         <section className="flex min-w-0 flex-1 flex-col">
           <div className="mb-2.5 flex min-h-6.75 items-center justify-between gap-3">
             <p className="text-[0.75rem]/[normal] font-bold uppercase tracking-wide text-text-soft">
@@ -224,8 +224,8 @@ export function ReleaseDetailPage() {
                 message="Add a track to get started."
               />
             ) : (
-              <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-                <table className="w-full border-collapse">
+              <div className="min-h-0 flex-1 overflow-auto">
+                <table className="w-full min-w-125 border-collapse">
                   <thead>
                     <tr className="border-b border-border">
                       <th
@@ -340,7 +340,7 @@ export function ReleaseDetailPage() {
         </section>
       </div>
             {release && 
-      <Card className="mt-7 flex items-center justify-between gap-4 px-5.5 py-4.5">
+      <Card className="mt-7 flex flex-col items-stretch gap-4 px-5.5 py-4.5 sm:flex-row sm:items-center sm:justify-between">
         <span
           className={`inline-flex items-center gap-2 text-[0.95rem]/[normal] font-semibold ${release.readinessSummary.checksPassed === release.readinessSummary.checksTotal ? "text-good" : "text-critical"}`}
           >

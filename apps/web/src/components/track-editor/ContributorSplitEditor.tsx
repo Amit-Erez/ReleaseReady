@@ -167,7 +167,8 @@ export function ContributorSplitEditor({
     <>
       <form onSubmit={handleSubmit(onValid)}>
         <Card>
-          <div className="grid grid-cols-[2fr_1.2fr_0.9fr_40px] items-center gap-3.5 border-b border-border px-5.5 pt-3.5 pb-2.5 text-[0.72rem]/[normal] font-bold uppercase tracking-wide text-text-soft">
+          <div className="overflow-x-auto">
+          <div className="min-w-135 grid grid-cols-[2fr_1.2fr_0.9fr_40px] items-center gap-3.5 border-b border-border px-5.5 pt-3.5 pb-2.5 text-[0.72rem]/[normal] font-bold uppercase tracking-wide text-text-soft">
             <span>Contributor</span>
             <span>Role</span>
             <span>Split</span>
@@ -176,7 +177,7 @@ export function ContributorSplitEditor({
           {fields.map((field, index) => (
             <div
               key={field.id}
-              className="grid grid-cols-[2fr_1.2fr_0.9fr_40px] items-center gap-3.5 border-b border-border px-5.5 py-3"
+              className="min-w-135 grid grid-cols-[2fr_1.2fr_0.9fr_40px] items-center gap-3.5 border-b border-border px-5.5 py-3"
             >
               <ContributorCell
                 rows={rows}
@@ -240,14 +241,15 @@ export function ContributorSplitEditor({
               )}
             </div>
           ))}
+          </div>
 
-          <div className="flex border-b border-border px-5.5 py-3">
+          <div className="flex flex-col gap-2 border-b border-border px-5.5 py-3 sm:flex-row">
             {release.status !== "submitted" && (
               <>
                 <button
                   type="button"
                   onClick={() => addContributorDialogRef.current?.open()}
-                  className="w-1/4 mr-2 bg-accent/10 rounded-sm border border-dashed border-accent p-2.5 text-[0.88rem]/[normal] font-semibold text-accent hover:border-accent hover:text-accent hover:bg-accent/14 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className="w-full whitespace-nowrap rounded-sm border border-dashed border-accent bg-accent/10 px-4 py-2.5 text-[0.88rem]/[normal] font-semibold text-accent hover:border-accent hover:text-accent hover:bg-accent/14 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:w-auto sm:shrink-0"
                 >
                   + Add contributor
                 </button>
@@ -260,7 +262,7 @@ export function ContributorSplitEditor({
                       split_percent: 0,
                     })
                   }
-                  className="w-full rounded-sm border border-dashed border-border p-2.5 text-[0.88rem]/[normal] font-semibold text-text-soft hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className="w-full whitespace-nowrap rounded-sm border border-dashed border-border p-2.5 text-[0.88rem]/[normal] font-semibold text-text-soft hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:flex-1"
                 >
                   + Add line
                 </button>
@@ -282,14 +284,14 @@ export function ContributorSplitEditor({
             </span>
           </div>
         </Card>
-        <Card className="mt-7 flex items-center justify-between gap-4 px-5.5 py-4.5">
+        <Card className="mt-7 flex flex-col items-stretch gap-4 px-5.5 py-4.5 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-[0.88rem]/[normal] text-text-soft">
             Splits must total 100% before changes can be saved.
           </span>
           <Button
             type="submit"
             disabled={!isComplete || release.status === "submitted"}
-            className="flex items-center justify-center w-30.75 max-h-9.5"
+            className="flex w-full items-center justify-center max-h-9.5 sm:w-30.75"
           >
             Save splits
           </Button>

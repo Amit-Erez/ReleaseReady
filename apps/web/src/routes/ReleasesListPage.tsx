@@ -137,7 +137,8 @@ export function ReleasesListPage() {
             }}
           />
         ) : (
-          <table className="w-full border-collapse">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-160 border-collapse">
             <thead>
               <tr className="border-b border-border">
                 <th
@@ -209,6 +210,7 @@ export function ReleasesListPage() {
                 ))}
             </tbody>
           </table>
+          </div>
         )}
       </Card>
 

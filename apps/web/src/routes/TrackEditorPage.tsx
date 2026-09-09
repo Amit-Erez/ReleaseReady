@@ -166,7 +166,7 @@ export function TrackEditorPage() {
         <Card>
           <form
             onSubmit={handleSubmit(onValid)}
-            className="flex gap-4.5 px-5.5 py-5"
+            className="flex flex-col gap-4.5 px-5.5 py-5 sm:flex-row"
           >
             <div className="flex-2">
               <Field
@@ -186,7 +186,7 @@ export function TrackEditorPage() {
                 {...register("isrc")}
               />
             </div>
-            <div className="flex justify-center items-end max-w-30.75">
+            <div className="flex justify-center sm:items-end sm:max-w-30.75">
               <Button
                 type="submit"
                 disabled={!isDirty || release.status === "submitted"}

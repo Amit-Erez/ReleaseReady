@@ -31,7 +31,7 @@ export function ReleaseDetailSkeleton() {
           </div>
         </div>
 
-        <div className="flex items-start gap-6">
+        <div className="flex flex-col items-stretch gap-6 md:flex-row md:items-start">
           <section className="flex min-w-0 flex-1 flex-col">
             <div className="mb-2.5 flex min-h-6.75 items-center justify-between gap-3">
               <SkeletonShape className="h-3 w-17.5 rounded" />
@@ -72,7 +72,7 @@ export function ReleaseDetailSkeleton() {
           </section>
         </div>
 
-        <Card className="mt-7 flex items-center justify-between gap-4 px-5.5 py-4.5">
+        <Card className="mt-7 flex flex-col items-stretch gap-4 px-5.5 py-4.5 sm:flex-row sm:items-center sm:justify-between">
           <SkeletonBar className="w-37.5" />
           <SkeletonShape className="h-9.5 w-32.5 rounded-sm" />
         </Card>
