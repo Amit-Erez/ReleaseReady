@@ -13,6 +13,53 @@ A small full-stack tool for tracking music release readiness — catalogue relea
 - **Shared**: Zod schemas shared between frontend and backend (`packages/shared`)
 - **Testing**: Vitest, Supertest, React Testing Library
 
+## Schema
+
+Five tables: `releases`, `tracks`, `contributors`, `submissions`, plus `track_contributors` as the join table carrying the genuine many-to-many between tracks and contributors (each row's `role` and `split_percent` is real payload, not just a link). A release has zero-or-one `submissions` row, enforced by a real `UNIQUE` constraint on `submissions.release_id` — not just a modeling choice, the database itself rejects submitting the same release twice.
+
+```mermaid
+erDiagram
+    RELEASES ||--o{ TRACKS : has
+    RELEASES ||--o| SUBMISSIONS : has
+    TRACKS ||--o{ TRACK_CONTRIBUTORS : has
+    CONTRIBUTORS ||--o{ TRACK_CONTRIBUTORS : has
+
+    RELEASES {
+        int id PK
+        text title
+        text artist_name
+        text upc UK
+        date release_date
+        text status
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    TRACKS {
+        int id PK
+        int release_id FK
+        text title
+        int track_number
+        text isrc UK
+    }
+    CONTRIBUTORS {
+        int id PK
+        text name
+        text default_role
+        timestamptz created_at
+    }
+    TRACK_CONTRIBUTORS {
+        int track_id PK
+        int contributor_id PK
+        text role PK
+        numeric split_percent
+    }
+    SUBMISSIONS {
+        int id PK
+        int release_id UK
+        timestamptz submitted_at
+    }
+```
+
 ## Project structure
 
 ```
