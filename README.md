@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Amit-Erez/ReleaseReady/actions/workflows/ci.yml/badge.svg)](https://github.com/Amit-Erez/ReleaseReady/actions/workflows/ci.yml)
 
-**Live demo:** [release-ready-ten.vercel.app](https://release-ready-ten.vercel.app/) — API on Render's free tier, so the first load after a period of inactivity can take up to a minute while it spins back up; it's fast on every load after that.
+**Live demo:** [release-ready-ae.vercel.app](https://release-ready-ae.vercel.app/) — API on Render's free tier, so the first load after a period of inactivity can take up to a minute while it spins back up; it's fast on every load after that.
 
 A small full-stack tool for tracking music release readiness — catalogue releases and tracks, manage contributor credits and splits, and run a readiness check before submission. Built as a portfolio project rooted in real digital-distribution QA experience.
 
@@ -230,6 +230,18 @@ Fixture data for what's still unwired lives in
       using an explicit `npm run build -w apps/web` + `apps/web/dist`
       output directory instead, so the install genuinely runs from
       the workspace root.
+- [x] Lighthouse audit against the live deployment — 100 across
+      Performance, Accessibility, Best Practices, and SEO. Fixed two
+      real SEO gaps: a missing meta description, and a 404 on any
+      direct navigation to a client-side route (e.g. refreshing on
+      `/dashboard`) — Vercel only serves real static files by
+      default, so a `vercel.json` rewrite now falls back to
+      `index.html` for anything else, letting React Router take over.
+      That fix had its own side effect: `/robots.txt` and `/llms.txt`
+      aren't real files either, so they started getting served the
+      app's HTML instead of 404ing cleanly — fixed by adding real
+      versions of both to `public/`, which take priority over the
+      rewrite the same way the JS/CSS bundles already did.
 - [x] Accessibility pass (keyboard, labels) — manual keyboard-only
       walkthrough of all three screens, since Lighthouse only checks
       static markup and can't catch focus-order or usability issues

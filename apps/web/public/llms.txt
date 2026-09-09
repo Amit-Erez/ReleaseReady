@@ -6,5 +6,5 @@ Built as a portfolio project rooted in real digital-distribution QA experience. 
 
 ## Links
 
-- [Live demo](https://release-ready-ten.vercel.app/): the deployed application
+- [Live demo](https://release-ready-ae.vercel.app/): the deployed application
 - [Source code](https://github.com/Amit-Erez/ReleaseReady): full repository
