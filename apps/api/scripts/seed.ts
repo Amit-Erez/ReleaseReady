@@ -1,7 +1,9 @@
 import { Client } from 'pg';
 import { config } from '../src/config.js';
 
-const client = new Client({ connectionString: config.DATABASE_URL });
+const client = new Client({ connectionString: config.DATABASE_URL,
+  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
+ });
 
 async function main() {
   await client.connect();
