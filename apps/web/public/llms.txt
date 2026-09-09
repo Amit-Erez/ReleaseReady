@@ -1,0 +1,10 @@
+# ReleaseReady
+
+> A small full-stack tool for tracking music release readiness: catalogue releases and tracks, manage contributor credits and splits, and run a readiness check before submission.
+
+Built as a portfolio project rooted in real digital-distribution QA experience. PostgreSQL backend with hand-written SQL and a transactional submission flow, React/TypeScript frontend with TanStack Query.
+
+## Links
+
+- [Live demo](https://release-ready-ten.vercel.app/): the deployed application
+- [Source code](https://github.com/Amit-Erez/ReleaseReady): full repository
