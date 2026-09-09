@@ -1,0 +1,227 @@
+# Build log
+
+A week-by-week engineering log of how ReleaseReady was actually built — every endpoint, every real bug hit and fixed, and the reasoning behind the non-obvious decisions along the way. Originally the README's own Status section; moved here once the README itself was rewritten to the brief's leaner, portfolio-facing format. Kept because it's a genuinely useful record, not because it needed to be public-facing.
+
+**Week 1 (Database and basic API): done.**
+- [x] Repository/project structure, local PostgreSQL set up
+- [x] Migrations for all 5 tables (`releases`, `tracks`, `contributors`,
+      `track_contributors`, `submissions`) with constraints — see
+      `apps/api/migrations/` and `docs/decisions.md`
+- [x] Seed script (`apps/api/scripts/seed.ts`)
+- [x] `GET /api/releases`, `GET /api/releases/:id`, `POST /api/releases`
+      — Zod-validated via `packages/shared`, manually tested in Postman
+
+**Week 2 (relationships, readiness, transactions, tests, CI): done.**
+- [x] `POST /api/releases/:releaseId/tracks`, `POST /api/contributors`
+      — Zod-validated via `packages/shared`, manually tested in Postman
+      (success + error paths, incl. foreign-key and unique-constraint
+      conflicts)
+- [x] `GET /api/releases/:releaseId/tracks`, `GET /api/releases/:releaseId/contributors`
+      — the latter joins across `track_contributors`/`tracks` to power the
+      future contributor-reuse picker; both 404 on a nonexistent release,
+      manually tested in Postman
+- [x] Readiness-check function (`checkReadiness`, pure/unit-testable) and
+      `GET /api/releases/:releaseId/readiness`, covering all 6 readiness
+      rules — manually tested in Postman
+- [x] `PATCH /api/releases/:id` — edits release metadata (all-or-nothing);
+      409 on duplicate UPC, 409 if the release is already submitted
+      (checked before the write, so a submitted release can never be
+      silently modified); manually tested in Postman
+- [x] `PATCH /api/tracks/:id` — edits track metadata (all-or-nothing);
+      409 on duplicate ISRC or track number, 409 if the track's parent
+      release is already submitted; manually tested in Postman
+- [x] `PUT /api/tracks/:id/contributors` — the second (and last) project
+      transaction: atomically replaces a track's whole contributor set,
+      422 if the new splits don't sum to exactly 100%, 409 on a submitted
+      release or a duplicate contributor+role pair in the same request.
+      Replaces the earlier `POST /api/tracks/:trackId/contributors`
+      (removed — see `docs/decisions.md` "Process note" for why it
+      existed and why it was retired). Manually tested in Postman across
+      all paths.
+- [x] `POST /api/releases/:id/submit` — the submit-flow transaction (the
+      project's primary transaction): rechecks readiness, then atomically
+      inserts the `submissions` row and flips `status` to `submitted`,
+      rolling back if either write fails. 404 if not found, 422 with the
+      failure list if not ready, 409 if already submitted. Manually
+      tested in Postman across all paths.
+- [x] Tests — 11 total: readiness unit tests (one per rule + one all-clear
+      case, `services/readiness.test.ts`) and three submit-flow
+      integration tests (`tests/submit.test.ts`, Supertest against a
+      separate test database) covering a successful submission, a failed
+      readiness check, and the rollback test forcing a mid-transaction
+      failure and asserting zero partial state. Run via
+      `npm run test -w apps/api`; see `docs/rollback-test-explained.md`
+      for how the rollback test's mocking works.
+- [x] CI — GitHub Actions (`.github/workflows/ci.yml`): installs
+      dependencies, starts a temporary PostgreSQL service container, runs
+      migrations, then runs the test suite, on every push and pull
+      request to `main`. Badge at the top of the README.
+
+**Week 3 (small frontend — connect React to the real API): done.**
+Built in two deliberate passes: static UI first (placeholder data, no
+`fetch`), then wired to the real API screen by screen. Both passes are
+part of this same week's deliverable, not separate milestones.
+- [x] Tailwind v4 CSS-first theming (`apps/web/src/index.css`) — light
+      ("warm & analog") and dark ("studio console") themes via a
+      `data-theme` attribute, a full custom type scale, and semantic
+      `good`/`critical` colors kept separate from the accent color
+- [x] `AppShell`/`TopBar`/`ThemeToggle` — stable-label toggle button
+      driven by `aria-pressed` (not swapped text), skip-to-main-content
+      link, native `<dialog>` centering and cursor fixes for gaps in
+      Tailwind's preflight reset. Real logo assets (icon + wordmark,
+      text swapped via the `dark:` variant) replaced the placeholder
+      text wordmark in the top bar and landing page.
+- [x] Landing page (`/`) — logo wordmark linking to `/dashboard`
+- [x] Releases list (`/dashboard`) — real `useQuery` fetch, filterable
+      table, real keyboard-focusable links (not clickable rows),
+      `CreateReleaseDialog`, loading skeleton, and an accessible error
+      state with retry. Readiness indicator is now computed
+      server-side (`GET /api/releases`), closing a gap between the
+      brief's spec and what Week 1 actually built.
+- [x] Release detail (`/releases/:releaseId`) — real fetch for the
+      release and its tracks (each with a computed `splitsTotal`), a
+      full readiness breakdown (all 6 rules, pass/fail, not just
+      failures) via `ReadinessPanel`, a loading skeleton, and two error
+      states (full-page if the release fails to load, a smaller
+      in-card one if only the tracks fetch fails). `AddTrackDialog` is
+      fully wired — React Hook Form + a Zod resolver, a real mutation
+      that creates the track and refreshes the list on success.
+- [x] Track & contributor editor
+      (`/releases/:releaseId/tracks/:trackId`) — real data wiring
+      done: fetches the release, its tracks, and a new
+      `GET /api/tracks/:id/contributors` endpoint (joins
+      `track_contributors` to `contributors` for names, mirroring the
+      existing `PUT` sibling), plus a matching loading skeleton
+      (`TrackEditorSkeleton`) and two error states (full-page if the
+      release or tracks fail to load, in-card if only the credits fetch
+      fails). Track number stays intentionally read-only here — see
+      `docs/decisions.md`.
+      - Title/ISRC: fully working, its own "Save details" action
+        (React Hook Form + a new `updateTrackSchema`, independent from
+        the contributor splits save so one can't block the other),
+        enabled only when a field actually differs from the saved
+        value (`formState.isDirty`, seeded via `reset()` once the
+        track loads).
+      - Contributors & splits: row add/remove is fully wired
+        (`useFieldArray`'s `append`/`remove`), matched to each row by
+        `contributor_id` rather than array position so the right
+        name/role/split stay together after a row is added or
+        removed. The "Total split" figure and the "Save splits"
+        button (now living inside `ContributorSplitEditor` itself,
+        alongside the fields it submits) update live as rows change
+        (`useWatch`), not from the last-saved server value.
+        `contributor_id`/`split_percent` use `z.coerce.number()`
+        (HTML inputs always deliver strings) with a `.positive()`
+        constraint and a custom message on `contributor_id`, and both
+        fields show a real error state (red border + message) driven
+        by `formState.errors`; `role` deliberately has none, since its
+        `<select>` can never hold an invalid value. A new
+        `AddContributorDialog` creates a genuinely new contributor
+        (`POST /api/contributors`) and injects it into the release-
+        scoped picker list via `queryClient.setQueryData` rather than
+        an invalidation — the release-scoped `GET` endpoint only
+        returns people already credited somewhere on the release, so
+        a freshly-created, not-yet-credited person would never come
+        back from a refetch. Known, accepted limitation: creating a
+        contributor and abandoning the flow before assigning/saving
+        them leaves a permanently orphaned, unreachable `contributors`
+        row — deliberately not solved yet. "Save splits" now calls the
+        real `PUT /api/tracks/:id/contributors`; on success the
+        credits query is invalidated and a `useEffect` watching the
+        refetched rows calls `reset()` to resync the form's own
+        internal state, since `defaultValues` only seeds once at mount
+        and doesn't otherwise follow prop updates — without it, a
+        newly-added row's picker wouldn't turn back into plain text
+        after saving.
+- [x] "Submit release" action — real mutation calling
+      `POST /api/releases/:id/submit`; button disables and relabels
+      ("Submitting…") while in flight (on top of the existing
+      readiness-check gating), and the release query is invalidated
+      on success so the page flips to "Already submitted".
+- [x] Track reordering — `PATCH /api/tracks/:id/move` swaps a track
+      with its neighbor via a single atomic `UPDATE`; required making
+      the `(release_id, track_number)` unique constraint deferrable,
+      since Postgres checks it per-row rather than once per statement.
+      Up/down buttons on the release detail page's Tracks card are
+      keyboard-accessible by default (native `<button>`s), disabled at
+      the list's edges and while the release is submitted. Track number
+      is intentionally read-only everywhere else specifically so this
+      is the one place it changes (see `docs/decisions.md`). Mouse
+      drag-and-drop is deferred to a later pass; the same endpoint will
+      support it without backend changes.
+- [x] Tracks-specific loading skeleton — the release detail page's
+      Tracks card now shows its own skeleton rows while the tracks
+      fetch is in flight, independent of the page-level skeleton (which
+      only covers the initial release fetch). `TracksTableSkeleton`
+      is shared between both call sites so the row markup isn't
+      duplicated.
+- [x] Empty states — the releases list distinguishes a genuinely
+      empty catalogue from a status filter matching nothing, and the
+      release detail page's Tracks card shows a message when a release
+      has no tracks yet. New `EmptyState`/`CompactEmptyState`
+      components (`components/empty/`) mirror the existing
+      `ErrorState`/`CompactErrorState` pair, styled neutral instead of
+      critical. The Track & Contributor editor's split editor was
+      checked too but already degrades gracefully with zero rows
+      (headers and add-row prompts stay visible), so it needed no
+      change.
+
+Fixture data for what's still unwired lives in
+`apps/web/src/lib/placeholderData.ts`, typed against the real
+`@release-ready/shared` schemas.
+
+**Week 4 (proof and deployment): in progress.**
+- [x] Deployed: Neon (PostgreSQL) + Render (API) + Vercel (frontend),
+      with seeded demo data. Two real fixes needed to get the API
+      actually running in production, neither caught by CI or local
+      dev since both only ever exercise different code paths:
+      `apps/api`'s `start` script now runs via `tsx` instead of
+      `node dist/index.js` — `packages/shared` has no build step of
+      its own (consumed as raw source), so plain `node` crashed
+      trying to execute a `.ts` file directly; and `db.ts`/`seed.ts`
+      now enable SSL when `NODE_ENV=production`, since Neon requires
+      encrypted connections and local Postgres doesn't use them.
+      Render's free tier has no pre-deploy hook, so migrations run
+      by chaining them into the start command instead
+      (`migrate:up && start` — safe to repeat, since `node-pg-migrate`
+      tracks what's already applied). On Vercel, the monorepo's
+      `packages/shared` wasn't reachable with Root Directory scoped
+      to `apps/web` (even with "include files outside root" enabled,
+      since that only affects file visibility, not where the install
+      command actually runs) — fixed by clearing Root Directory and
+      using an explicit `npm run build -w apps/web` + `apps/web/dist`
+      output directory instead, so the install genuinely runs from
+      the workspace root.
+- [x] Lighthouse audit against the live deployment — 100 across
+      Performance, Accessibility, Best Practices, and SEO. Fixed two
+      real SEO gaps: a missing meta description, and a 404 on any
+      direct navigation to a client-side route (e.g. refreshing on
+      `/dashboard`) — Vercel only serves real static files by
+      default, so a `vercel.json` rewrite now falls back to
+      `index.html` for anything else, letting React Router take over.
+      That fix had its own side effect: `/robots.txt` and `/llms.txt`
+      aren't real files either, so they started getting served the
+      app's HTML instead of 404ing cleanly — fixed by adding real
+      versions of both to `public/`, which take priority over the
+      rewrite the same way the JS/CSS bundles already did.
+- [x] Accessibility pass (keyboard, labels) — manual keyboard-only
+      walkthrough of all three screens, since Lighthouse only checks
+      static markup and can't catch focus-order or usability issues
+      that only show up mid-interaction. Found one real issue: adding
+      a credit line left focus on the Role select instead of
+      Contributor. Fixed by giving each row's Contributor select a
+      predictable `id` and focusing it directly in an effect that
+      only fires when a row is added. Everything else checked out —
+      DOM tab order was already correct throughout, and the landing
+      page needing one `Tab` press to reach its link is expected
+      browser behavior, not a bug.
+- [x] The one React component test — `ContributorSplitEditor`, chosen
+      per the brief's own suggested scope: live total updates as
+      splits change, and "Save splits" is disabled while the total is
+      off 100% and enables once it hits exactly 100%. First test
+      infrastructure for `apps/web` (`vitest.config.ts`,
+      `src/test/setup.ts` wiring up `@testing-library/jest-dom`'s
+      Vitest-specific entry point, `npm run test -w apps/web`) — the
+      backend already had this, the frontend didn't.
+- [x] Schema diagram, screenshots, README rewrite — see the README
+      itself for the current state of these.
